@@ -1,0 +1,4185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Budget Planner</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #f72585;
+            --dark: #3a0ca3;
+            --light: #f8f9fa;
+            --success: #4cc9f0;
+            --success-light: #e6fff7;
+            --warning: #f8961e;
+            --danger: #ef476f;
+            --danger-light: #ffebef;
+            --gray: #adb5bd;
+            --gray-light: #e9ecef;
+            --google: #34A853;
+            --meta: #4267B2;
+            --tiktok: #8C52FF;
+            --neon: #39ff14;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--gray);
+            font-size: 1rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .steps {
+            display: none;
+        }
+        
+        .step-active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-light);
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
+        }
+        
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .input-group-prepend {
+            position: absolute;
+            left: 10px;
+            color: var(--gray);
+            pointer-events: none;
+        }
+        
+        .input-with-prefix {
+            padding-left: 30px;
+        }
+        
+        .daily-budget {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: var(--gray-light);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .daily-budget-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0.5rem 0;
+        }
+        
+        .radio-item {
+            position: relative;
+            flex: 1 1 calc(33.333% - 10px);
+            min-width: 180px;
+        }
+        
+        .radio-item input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .radio-item label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--gray-light);
+            padding: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            height: 100%;
+        }
+        
+        .radio-item label i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .radio-item input[type="radio"]:checked + label {
+            background-color: var(--primary-light);
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0.5rem 0;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            background-color: var(--gray-light);
+            padding: 0.75rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .checkbox-item:hover {
+            background-color: var(--gray);
+            color: white;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+        
+        .checkbox-item.selected {
+            background-color: var(--primary-light);
+            color: white;
+        }
+        
+        .checkbox-item.google-ads {
+            border-left: 4px solid var(--google);
+        }
+        
+        .checkbox-item.meta-ads {
+            border-left: 4px solid var(--meta);
+        }
+        
+        .checkbox-item.tiktok-ads {
+            border-left: 4px solid var(--tiktok);
+        }
+        
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray-light);
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--gray);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #3ab7d5;
+        }
+        
+        .btn-disabled {
+            background-color: var(--gray-light);
+            color: var(--gray);
+            cursor: not-allowed;
+        }
+        
+        .dashboard {
+            display: none;
+        }
+        
+        .dashboard-active {
+            display: block;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dashboard-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .dashboard-subtitle {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .dashboard-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .col-3 {
+            grid-column: span 3;
+        }
+        
+        .col-4 {
+            grid-column: span 4;
+        }
+        
+        .col-6 {
+            grid-column: span 6;
+        }
+        
+        .col-8 {
+            grid-column: span 8;
+        }
+        
+        .col-9 {
+            grid-column: span 9;
+        }
+        
+        .col-12 {
+            grid-column: span 12;
+        }
+        
+        .metric-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .metric-card:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-change {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .metric-positive {
+            color: #38b000;
+        }
+        
+        .metric-negative {
+            color: var(--danger);
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 1rem;
+            position: relative;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        th {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        tr:hover {
+            background-color: var(--gray-light);
+        }
+        
+        .scenario {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .scenario:hover {
+            background-color: var(--gray-light);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .scenario.active {
+            border-left-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .scenario-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .scenario-desc {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+        
+        .scenario-metrics {
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .scenario-roas {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 1.25rem;
+        }
+        
+        .scenario-revenue {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+        
+        .slider-container {
+            margin: 1rem 0;
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: var(--gray-light);
+            outline: none;
+            margin: 0.5rem 0;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+        
+        .slider-value {
+            text-align: center;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .channel-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 5px;
+            border-left: 4px solid;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .channel-google {
+            border-left-color: var(--google);
+        }
+        
+        .channel-meta {
+            border-left-color: var(--meta);
+        }
+        
+        .channel-tiktok {
+            border-left-color: var(--tiktok);
+        }
+        
+        .channel-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .channel-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.5rem;
+        }
+        
+        .channel-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .channel-title.google {
+            color: var(--google);
+        }
+        
+        .channel-title.meta {
+            color: var(--meta);
+        }
+        
+        .channel-title.tiktok {
+            color: var(--tiktok);
+        }
+        
+        .channel-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .channel-metric {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 0.75rem;
+            min-width: 120px;
+            flex: 1 1 120px;
+            position: relative;
+        }
+        
+        .channel-metric-name {
+            font-size: 0.75rem;
+            color: var(--gray);
+            margin-bottom: 0.25rem;
+        }
+        
+        .channel-metric-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .key-metric {
+            background-color: rgba(76, 201, 240, 0.1);
+        }
+        
+        .key-metric .channel-metric-name {
+            color: var(--primary);
+        }
+        
+        .key-metric .channel-metric-value {
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+        
+        .editable-metric {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .editable-metric:hover::after {
+            content: "✏️";
+            position: absolute;
+            right: -20px;
+        }
+        
+        .edit-mode {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .edit-input {
+            width: 100%;
+            padding: 0.25rem;
+            border: 1px solid var(--primary);
+            border-radius: 3px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-light);
+            margin-bottom: 1.5rem;
+            gap: 0.5rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .tab:hover {
+            background-color: var(--gray-light);
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .goal-indicator {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background-color: rgba(76, 201, 240, 0.1);
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .goal-indicator i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        .goal-text {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .goal-indicator-neon {
+            background-color: rgba(57, 255, 20, 0.1);
+            border-left: 4px solid var(--neon);
+        }
+        
+        .goal-indicator-neon i,
+        .goal-indicator-neon .goal-text {
+            color: var(--neon);
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+        }
+        
+        .metric-input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .metric-input-group {
+            position: relative;
+        }
+        
+        .metric-input-group label {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .metric-input-group .tooltip-icon {
+            color: var(--gray);
+            cursor: help;
+            margin-left: 0.25rem;
+            font-size: 0.8rem;
+        }
+        
+        .tooltip {
+            position: absolute;
+            top: -50px;
+            left: 0;
+            width: 200px;
+            background-color: #333;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            z-index: 100;
+            display: none;
+        }
+        
+        .tooltip-icon:hover + .tooltip {
+            display: block;
+        }
+        
+        .auto-calculate {
+            font-size: 0.75rem;
+            color: var(--success);
+            font-weight: normal;
+        }
+        
+        .metric-input-group input {
+            width: 100%;
+        }
+        
+        .metric-input-group.calculated {
+            opacity: 0.7;
+        }
+        
+        .metric-input-group.calculated input {
+            background-color: var(--gray-light);
+        }
+        
+        .input-error {
+            border-color: var(--danger) !important;
+            background-color: var(--danger-light) !important;
+        }
+        
+        .input-success {
+            border-color: var(--success) !important;
+            background-color: var(--success-light) !important;
+        }
+        
+        .target-section {
+            background-color: rgba(67, 97, 238, 0.05);
+            border-radius: 5px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .target-section h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+            font-size: 1rem;
+        }
+        
+        .target-comparison {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .target-comparison.success {
+            background-color: var(--success-light);
+            border-left: 4px solid var(--success);
+        }
+        
+        .target-comparison.error {
+            background-color: var(--danger-light);
+            border-left: 4px solid var(--danger);
+        }
+        
+        .target-comparison-text {
+            font-weight: 600;
+        }
+        
+        .target-comparison.success .target-comparison-text {
+            color: var(--success);
+        }
+        
+        .target-comparison.error .target-comparison-text {
+            color: var(--danger);
+        }
+        
+        .what-if-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .what-if-slider {
+            background: white;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .what-if-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .what-if-title {
+            font-weight: 600;
+        }
+        
+        .what-if-value {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .impact-positive {
+            color: #38b000;
+        }
+        
+        .impact-negative {
+            color: var(--danger);
+        }
+        
+        .impact-neutral {
+            color: var(--gray);
+        }
+        
+        .what-if-result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: rgba(67, 97, 238, 0.05);
+            border-radius: 5px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .what-if-result-header {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        .what-if-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .what-if-metric {
+            flex: 1 1 120px;
+            background: white;
+            padding: 0.75rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .what-if-metric-name {
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+        
+        .what-if-metric-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .recap-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .recap-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .recap-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .recap-subtitle {
+            color: var(--gray);
+        }
+        
+        .recap-section {
+            margin-bottom: 2rem;
+        }
+        
+        .recap-section-title {
+            font-size: 1.1rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .has-tooltip {
+            border-bottom: 1px dashed var(--gray);
+            cursor: help;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            font-weight: normal;
+        }
+        
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .has-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .channel-budget-distribution {
+            margin-top: 1rem;
+        }
+        
+        .channel-budget-bar {
+            height: 30px;
+            background-color: var(--gray-light);
+            border-radius: 15px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        .channel-budget-segment {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .channel-budget-segment.google {
+            background-color: var(--google);
+        }
+        
+        .channel-budget-segment.meta {
+            background-color: var(--meta);
+        }
+        
+        .channel-budget-segment.tiktok {
+            background-color: var(--tiktok);
+        }
+        
+        .channel-budget-legend {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.25rem;
+        }
+        
+        .legend-color.google {
+            background-color: var(--google);
+        }
+        
+        .legend-color.meta {
+            background-color: var(--meta);
+        }
+        
+        .legend-color.tiktok {
+            background-color: var(--tiktok);
+        }
+        
+        .final-scenario-select {
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: var(--success-light);
+            border-radius: 5px;
+            border-left: 4px solid var(--success);
+        }
+        
+        .final-scenario-select input[type="checkbox"] {
+            margin-right: 0.5rem;
+            width: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .col-3, .col-4, .col-6, .col-8, .col-9, .col-12 {
+                grid-column: span 1;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .dashboard-actions {
+                margin-top: 1rem;
+            }
+            
+            .metric-input-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .what-if-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Stile per il control budget */
+        .budget-control-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 5px;
+            border-left: 4px solid var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+            position: relative;
+        }
+        
+        .budget-control-section label {
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .budget-slider-container {
+            margin-top: 1rem;
+        }
+        
+        .budget-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 1rem 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Campaign Budget Planner</h1>
+            <p class="subtitle">Interactive marketing campaign analysis and planning</p>
+        </header>
+        
+        <div id="onboarding" class="card">
+            <div id="step1" class="steps step-active">
+                <h2 class="card-title">Campaign Details</h2>
+                <div class="form-group">
+                    <label for="campaignName">Campaign Name</label>
+                    <input type="text" id="campaignName" placeholder="Enter campaign name">
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-group">
+                    <label>Campaign Duration</label>
+                    <div id="campaignDuration">0 days</div>
+                </div>
+                <div class="form-group">
+                    <label for="objective">Campaign Objective</label>
+                    <select id="objective">
+                        <option value="">Select an objective</option>
+                        <option value="traffic">Traffic</option>
+                        <option value="leads">Lead Generation</option>
+                        <option value="sales">Sales</option>
+                        <option value="profile_visits">Profile Visits</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="totalBudget">Total Budget</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">€</div>
+                        <input type="number" id="totalBudget" class="input-with-prefix" placeholder="Enter total budget" min="0">
+                    </div>
+                    <div class="daily-budget">
+                        <span>Daily Budget:</span>
+                        <span class="daily-budget-value" id="dailyBudgetValue">€0.00</span>
+                    </div>
+                </div>
+                
+                <div id="targetSection" style="display: none;">
+                    <!-- Sezione dinamica che apparirà in base all'obiettivo selezionato -->
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-disabled" disabled>Back</button>
+                    <button class="btn btn-disabled" id="nextToStep2" disabled>Next</button>
+                </div>
+            </div>
+            
+            <div id="step2" class="steps">
+                <h2 class="card-title">Channels &amp; Performance Goal</h2>
+                
+                <div id="step2Recap" class="goal-indicator">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="goal-text">Objective and target recap will appear here</span>
+                </div>
+                
+                <div class="form-group">
+                    <label>Select Channels</label>
+                    <div class="checkbox-group" id="channelSelection">
+                        <div class="checkbox-item google-ads">
+                            <input type="checkbox" id="googleAds" value="google">
+                            <label for="googleAds">Google Ads</label>
+                        </div>
+                        <div class="checkbox-item meta-ads">
+                            <input type="checkbox" id="metaAds" value="meta">
+                            <label for="metaAds">Meta Advertising</label>
+                        </div>
+                        <div class="checkbox-item tiktok-ads">
+                            <input type="checkbox" id="tiktokAds" value="tiktok">
+                            <label for="tiktokAds">TikTok Ads</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- La sezione Performance Goal è nascosta perché già definita nella schermata precedente -->
+                <div class="form-group" style="display: none;">
+                    <label>Performance Goal</label>
+                    <div class="radio-group" id="performanceGoal">
+                        <div class="radio-item">
+                            <input type="radio" id="goal_conversions" name="goal" value="conversions">
+                            <label for="goal_conversions">
+                                <i class="fas fa-shopping-cart"></i>
+                                Conversions
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="goal_cpa" name="goal" value="cpa">
+                            <label for="goal_cpa">
+                                <i class="fas fa-tags"></i>
+                                Cost Per Acquisition
+                            </label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="goal_roas" name="goal" value="roas">
+                            <label for="goal_roas">
+                                <i class="fas fa-chart-line"></i>
+                                Return On Ad Spend
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="goalValueContainer" class="form-group" style="display: none;">
+                    <label for="goalValue">Target Value</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend" id="goalValuePrefix"></div>
+                        <input type="number" id="goalValue" class="input-with-prefix" placeholder="Enter target value" min="0">
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-secondary" id="backToStep1">Back</button>
+                    <button class="btn btn-disabled" id="nextToStep3" disabled>Next</button>
+                </div>
+            </div>
+            
+            <div id="step3" class="steps">
+                <h2 class="card-title">Historical Performance</h2>
+                <div id="goalIndicator" class="goal-indicator goal-indicator-neon">
+                    <i class="fas fa-bullseye"></i>
+                    <span class="goal-text">Your goal is to achieve X</span>
+                </div>
+                <p>Enter historical performance data for each selected channel. Missing values will be calculated automatically when possible.</p>
+                
+                <!-- Sezione budget control -->
+                <div class="budget-control-section">
+                    <label for="budgetControl">Total Campaign Budget - Adjust to see impact</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">€</div>
+                        <input type="number" id="budgetControl" class="input-with-prefix" min="1000" step="1000">
+                    </div>
+                    <div class="budget-value" id="budgetValue">€0.00</div>
+                    <div class="budget-slider-container">
+                        <input type="range" id="budgetSlider" class="slider" min="1000" max="100000" step="1000">
+                        <div class="slider-labels">
+                            <span>€1,000</span>
+                            <span>€100,000</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="historicalDataInputs">
+                    <!-- Will be dynamically populated -->
+                </div>
+                
+                <div id="targetAchievementSection" class="target-section">
+                    <h3>Target Achievement Analysis</h3>
+                    <div id="targetAchievementContent">
+                        <!-- Will be dynamically populated -->
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-secondary" id="backToStep2">Back</button>
+                    <button class="btn btn-primary" id="generateDashboard">Generate Dashboard</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="dashboard" class="dashboard">
+            <div class="dashboard-header">
+                <div>
+                    <h2 class="dashboard-title" id="dashboardTitle">Campaign Dashboard</h2>
+                    <p class="dashboard-subtitle" id="dashboardSubtitle">Duration • Budget • Channels</p>
+                </div>
+                <div class="dashboard-actions">
+                    <button class="btn btn-secondary" id="editCampaign">Edit Campaign</button>
+                </div>
+            </div>
+            
+            <div id="campaignRecap" class="goal-indicator">
+                <i class="fas fa-info-circle"></i>
+                <span class="goal-text" id="campaignRecapText">Campaign objective and target will appear here</span>
+            </div>
+            
+            <div class="grid">
+                <div class="col-8">
+                    <div class="card">
+                        <div class="tabs">
+                            <div class="tab active" data-tab="overview">Overview</div>
+                            <div class="tab" data-tab="channels">Channel Performance</div>
+                            <div class="tab" data-tab="scenarios">Budget Scenarios</div>
+                            <div class="tab" data-tab="what-if">What-If Analysis</div>
+                        </div>
+                        
+                        <div class="tab-content active" id="overview">
+                            <h3 class="card-title">Campaign Overview</h3>
+                            
+                            <div id="goalIndicatorDashboard" class="goal-indicator goal-indicator-neon">
+                                <i class="fas fa-bullseye"></i>
+                                <span class="goal-text">Your goal is to achieve X</span>
+                            </div>
+                            
+                            <div class="grid">
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <div class="metric-title">Total Budget</div>
+                                        <div class="metric-value tooltip-container">
+                                            <span class="has-tooltip" id="overviewTotalBudget">€0</span>
+                                            <span class="tooltip-text">Total budget allocated to your campaign</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-card">
+                                        <div class="metric-title">Projected Revenue</div>
+                                        <div class="metric-value tooltip-container">
+                                            <span class="has-tooltip" id="overviewProjectedRevenue">€0</span>
+                                            <span class="tooltip-text">Estimated revenue based on historical performance</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="metric-card key-metric">
+                                        <div class="metric-title" id="overviewKeyMetricTitle">Projected ROAS</div>
+                                        <div class="metric-value tooltip-container">
+                                            <span class="has-tooltip" id="overviewKeyMetricValue">0x</span>
+                                            <span class="tooltip-text" id="overviewKeyMetricTooltip">ROAS = Revenue / Spend</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="budgetAllocationChart"></canvas>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="projectedRevenueChart"></canvas>
+                            </div>
+                            
+                            <h3 class="card-title">Campaign Metrics</h3>
+                            <table id="metricsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Will be dynamically populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="tab-content" id="channels">
+                            <h3 class="card-title">Channel Performance</h3>
+                            
+                            <div id="channelPerformanceContent">
+                                <!-- Will be dynamically populated -->
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="scenarios">
+                            <h3 class="card-title">Budget Allocation Scenarios</h3>
+                            
+                            <div id="scenariosContainer">
+                                <!-- Will be dynamically populated -->
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="scenariosComparisonChart"></canvas>
+                            </div>
+                            
+                            <div id="finalScenarioSelectContainer" class="final-scenario-select">
+                                <input type="checkbox" id="finalScenarioSelect">
+                                <label for="finalScenarioSelect">Select this scenario as final</label>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <button class="btn btn-primary" id="viewFinalScenario">View Final Scenario</button>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="what-if">
+                            <h3 class="card-title">What-If Analysis</h3>
+                            
+                            <div class="form-group">
+                                <label>Select Channel</label>
+                                <select id="whatIfChannel">
+                                    <!-- Will be dynamically populated -->
+                                </select>
+                            </div>
+                            
+                            <div class="what-if-controls" id="whatIfControls">
+                                <!-- Will be dynamically populated -->
+                            </div>
+                            
+                            <div class="what-if-result">
+                                <div class="what-if-result-header">Impact on Performance:</div>
+                                <div class="what-if-metrics" id="whatIfResults">
+                                    <!-- Will be dynamically populated -->
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="whatIfImpactChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-4">
+                    <div class="card">
+                        <h3 class="card-title">Current Budget Allocation</h3>
+                        <div id="currentAllocation">
+                            <!-- Will be dynamically populated -->
+                        </div>
+                        
+                        <div class="slider-container">
+                            <label>Adjust Budget Distribution</label>
+                            <div id="budgetSliders">
+                                <!-- Will be dynamically populated -->
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="applyAllocation" style="width: 100%;">Apply Allocation</button>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="card-title">Recommended Actions</h3>
+                        <ul id="recommendationsList">
+                            <!-- Will be dynamically populated -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="finalScenarioRecap" class="recap-container" style="display: none;">
+            <div class="recap-header">
+                <h2 class="recap-title">Final Campaign Scenario</h2>
+                <p class="recap-subtitle" id="finalScenarioDate">Generated on March 6, 2025</p>
+            </div>
+            
+            <div class="recap-section">
+                <h3 class="recap-section-title">Campaign Details</h3>
+                <div class="grid">
+                    <div class="col-6">
+                        <p><strong>Campaign Name:</strong> <span id="finalCampaignName"></span></p>
+                        <p><strong>Duration:</strong> <span id="finalCampaignDuration"></span></p>
+                        <p><strong>Dates:</strong> <span id="finalCampaignDates"></span></p>
+                    </div>
+                    <div class="col-6">
+                        <p><strong>Objective:</strong> <span id="finalCampaignObjective"></span></p>
+                        <p><strong>Target:</strong> <span id="finalCampaignTarget"></span></p>
+                        <p><strong>Total Budget:</strong> <span id="finalCampaignBudget"></span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recap-section">
+                <h3 class="recap-section-title">Budget Allocation</h3>
+                <div class="channel-budget-distribution">
+                    <div class="channel-budget-bar" id="finalChannelBudgetBar">
+                        <!-- Will be dynamically populated -->
+                    </div>
+                    <div class="channel-budget-legend" id="finalChannelBudgetLegend">
+                        <!-- Will be dynamically populated -->
+                    </div>
+                </div>
+                
+                <div class="grid" style="margin-top: 1.5rem;">
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="metric-title">Total Budget</div>
+                            <div class="metric-value" id="finalTotalBudget">€0</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="metric-card">
+                            <div class="metric-title">Projected Revenue</div>
+                            <div class="metric-value" id="finalProjectedRevenue">€0</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="metric-card key-metric">
+                            <div class="metric-title" id="finalKeyMetricTitle">Projected ROAS</div>
+                            <div class="metric-value" id="finalKeyMetricValue">0x</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="recap-section">
+                <h3 class="recap-section-title">Performance Projections</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Channel</th>
+                            <th>Budget</th>
+                            <th>Clicks</th>
+                            <th>Conversions</th>
+                            <th>Revenue</th>
+                            <th>ROAS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="finalPerformanceTable">
+                        <!-- Will be dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="btn-group" style="justify-content: center; margin-top: 2rem;">
+                <button class="btn btn-secondary" id="backToDashboard">Back to Dashboard</button>
+                <button class="btn btn-primary" id="exportFinalScenario">Export as Screenshot</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+    
+    // Utility functions
+        function formatCurrency(value) {
+            return '€' + parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        
+        function formatPercentage(value) {
+            return parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+        }
+        
+        function formatRoas(value) {
+            return parseFloat(value).toFixed(2) + 'x';
+        }
+        
+        function formatNumber(value) {
+            return parseFloat(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
+        }
+        
+        // Campaign data object
+        let campaignData = {
+            name: '',
+            startDate: '',
+            endDate: '',
+            duration: 0,
+            objective: '',
+            objectiveTarget: 0,
+            objectiveCost: 0,
+            totalBudget: 0,
+            dailyBudget: 0,
+            channels: [],
+            performanceGoal: {
+                type: '',
+                value: 0
+            },
+            historicalData: {},
+            scenarios: [],
+            finalScenario: null
+        };
+        
+        // Channel configurations
+        const channelConfigs = {
+            google: {
+                name: 'Google Ads',
+                color: '#34A853',
+                metrics: {
+                    impressions: { name: 'Impressions', format: 'number', default: 100000, calculated: false, tooltip: 'Number of times your ads were shown' },
+                    clicks: { name: 'Clicks', format: 'number', default: 2500, calculated: false, tooltip: 'Number of clicks on your ads' },
+                    ctr: { name: 'CTR', format: 'percentage', default: 2.5, calculated: true, tooltip: 'Click-Through Rate = Clicks / Impressions * 100' },
+                    cpc: { name: 'CPC', format: 'currency', default: 0.5, calculated: true, tooltip: 'Cost Per Click = Spend / Clicks' },
+                    spend: { name: 'Spend', format: 'currency', default: 1250, calculated: false, tooltip: 'Total amount spent on this channel' },
+                    conversions: { name: 'Conversions', format: 'number', default: 50, calculated: false, tooltip: 'Number of conversions achieved' },
+                    convRate: { name: 'Conversion Rate', format: 'percentage', default: 2.0, calculated: true, tooltip: 'Conversion Rate = Conversions / Clicks * 100' },
+                    cpa: { name: 'CPA', format: 'currency', default: 25, calculated: true, tooltip: 'Cost Per Acquisition = Spend / Conversions' },
+                    revenue: { name: 'Revenue', format: 'currency', default: 5000, calculated: false, tooltip: 'Total revenue generated' },
+                    roas: { name: 'ROAS', format: 'roas', default: 4.0, calculated: true, tooltip: 'Return On Ad Spend = Revenue / Spend' }
+                }
+            },
+            meta: {
+                name: 'Meta Advertising',
+                color: '#4267B2',
+                metrics: {
+                    impressions: { name: 'Impressions', format: 'number', default: 150000, calculated: false, tooltip: 'Number of times your ads were shown' },
+                    clicks: { name: 'Clicks', format: 'number', default: 1800, calculated: false, tooltip: 'Number of clicks on your ads' },
+                    ctr: { name: 'CTR', format: 'percentage', default: 1.2, calculated: true, tooltip: 'Click-Through Rate = Clicks / Impressions * 100' },
+                    cpc: { name: 'CPC', format: 'currency', default: 0.3, calculated: true, tooltip: 'Cost Per Click = Spend / Clicks' },
+                    spend: { name: 'Spend', format: 'currency', default: 540, calculated: false, tooltip: 'Total amount spent on this channel' },
+                    conversions: { name: 'Conversions', format: 'number', default: 60, calculated: false, tooltip: 'Number of conversions achieved' },
+                    convRate: { name: 'Conversion Rate', format: 'percentage', default: 3.0, calculated: true, tooltip: 'Conversion Rate = Conversions / Clicks * 100' },
+                    cpa: { name: 'CPA', format: 'currency', default: 15, calculated: true, tooltip: 'Cost Per Acquisition = Spend / Conversions' },
+                    revenue: { name: 'Revenue', format: 'currency', default: 2700, calculated: false, tooltip: 'Total revenue generated' },
+                    roas: { name: 'ROAS', format: 'roas', default: 5.0, calculated: true, tooltip: 'Return On Ad Spend = Revenue / Spend' }
+                }
+            },
+            tiktok: {
+                name: 'TikTok Ads',
+                color: '#8C52FF',
+                metrics: {
+                    impressions: { name: 'Impressions', format: 'number', default: 200000, calculated: false, tooltip: 'Number of times your ads were shown' },
+                    clicks: { name: 'Clicks', format: 'number', default: 3000, calculated: false, tooltip: 'Number of clicks on your ads' },
+                    ctr: { name: 'CTR', format: 'percentage', default: 1.5, calculated: true, tooltip: 'Click-Through Rate = Clicks / Impressions * 100' },
+                    cpc: { name: 'CPC', format: 'currency', default: 0.4, calculated: true, tooltip: 'Cost Per Click = Spend / Clicks' },
+                    spend: { name: 'Spend', format: 'currency', default: 1200, calculated: false, tooltip: 'Total amount spent on this channel' },
+                    conversions: { name: 'Conversions', format: 'number', default: 30, calculated: false, tooltip: 'Number of conversions achieved' },
+                    convRate: { name: 'Conversion Rate', format: 'percentage', default: 1.0, calculated: true, tooltip: 'Conversion Rate = Conversions / Clicks * 100' },
+                    cpa: { name: 'CPA', format: 'currency', default: 40, calculated: true, tooltip: 'Cost Per Acquisition = Spend / Conversions' },
+                    revenue: { name: 'Revenue', format: 'currency', default: 4200, calculated: false, tooltip: 'Total revenue generated' },
+                    roas: { name: 'ROAS', format: 'roas', default: 3.5, calculated: true, tooltip: 'Return On Ad Spend = Revenue / Spend' }
+                }
+            }
+        };
+        
+        // Objective configurations
+        const objectiveConfigs = {
+            copy: { name: 'Copy', defaultCost: 0.50 },
+            traffic: { name: 'Traffic', defaultCost: 0.30 },
+            leads: { name: 'Lead Generation', defaultCost: 5.00 },
+            sales: { name: 'Sales', defaultCost: 15.00 },
+            profile_visits: { name: 'Profile Visits', defaultCost: 0.20 }
+        };
+        
+        // Chart objects
+        let budgetAllocationChart = null;
+        let projectedRevenueChart = null;
+        let scenariosComparisonChart = null;
+        let whatIfImpactChart = null;
+        
+        // DOM Elements
+        const onboardingSection = document.getElementById('onboarding');
+        const dashboardSection = document.getElementById('dashboard');
+        const finalScenarioRecap = document.getElementById('finalScenarioRecap');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        
+        // Step 1 Elements
+        const campaignNameInput = document.getElementById('campaignName');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const campaignDurationElement = document.getElementById('campaignDuration');
+        const objectiveSelect = document.getElementById('objective');
+        const totalBudgetInput = document.getElementById('totalBudget');
+        const dailyBudgetValue = document.getElementById('dailyBudgetValue');
+        const targetSection = document.getElementById('targetSection');
+        const nextToStep2Button = document.getElementById('nextToStep2');
+        
+        // Step 2 Elements
+        const step2Recap = document.getElementById('step2Recap');
+        const channelSelection = document.getElementById('channelSelection');
+        const performanceGoalRadios = document.querySelectorAll('input[name="goal"]');
+        const goalValueContainer = document.getElementById('goalValueContainer');
+        const goalValuePrefix = document.getElementById('goalValuePrefix');
+        const goalValueInput = document.getElementById('goalValue');
+        const backToStep1Button = document.getElementById('backToStep1');
+        const nextToStep3Button = document.getElementById('nextToStep3');
+        
+        // Step 3 Elements
+        const goalIndicator = document.getElementById('goalIndicator');
+        const goalIndicatorDashboard = document.getElementById('goalIndicatorDashboard');
+        const historicalDataInputs = document.getElementById('historicalDataInputs');
+        const targetAchievementContent = document.getElementById('targetAchievementContent');
+        const backToStep2Button = document.getElementById('backToStep2');
+        const generateDashboardButton = document.getElementById('generateDashboard');
+        const budgetControl = document.getElementById('budgetControl');
+        const budgetSlider = document.getElementById('budgetSlider');
+        const budgetValue = document.getElementById('budgetValue');
+        
+        // Dashboard Elements
+        const dashboardTitle = document.getElementById('dashboardTitle');
+        const dashboardSubtitle = document.getElementById('dashboardSubtitle');
+        const campaignRecap = document.getElementById('campaignRecap');
+        const campaignRecapText = document.getElementById('campaignRecapText');
+        const editCampaignButton = document.getElementById('editCampaign');
+        const tabLinks = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Dashboard Content Elements
+        const overviewTotalBudget = document.getElementById('overviewTotalBudget');
+        const overviewProjectedRevenue = document.getElementById('overviewProjectedRevenue');
+        const overviewKeyMetricTitle = document.getElementById('overviewKeyMetricTitle');
+        const overviewKeyMetricValue = document.getElementById('overviewKeyMetricValue');
+        const overviewKeyMetricTooltip = document.getElementById('overviewKeyMetricTooltip');
+        const channelPerformanceContent = document.getElementById('channelPerformanceContent');
+        const scenariosContainer = document.getElementById('scenariosContainer');
+        const finalScenarioSelect = document.getElementById('finalScenarioSelect');
+        const viewFinalScenarioButton = document.getElementById('viewFinalScenario');
+        const whatIfChannel = document.getElementById('whatIfChannel');
+        const whatIfControls = document.getElementById('whatIfControls');
+        const whatIfResults = document.getElementById('whatIfResults');
+        const currentAllocation = document.getElementById('currentAllocation');
+        const budgetSliders = document.getElementById('budgetSliders');
+        const applyAllocationButton = document.getElementById('applyAllocation');
+        const metricsTable = document.getElementById('metricsTable').querySelector('tbody');
+        const recommendationsList = document.getElementById('recommendationsList');
+        
+        // Final Scenario Elements
+        const finalCampaignName = document.getElementById('finalCampaignName');
+        const finalCampaignDuration = document.getElementById('finalCampaignDuration');
+        const finalCampaignDates = document.getElementById('finalCampaignDates');
+        const finalCampaignObjective = document.getElementById('finalCampaignObjective');
+        const finalCampaignTarget = document.getElementById('finalCampaignTarget');
+        const finalCampaignBudget = document.getElementById('finalCampaignBudget');
+        const finalChannelBudgetBar = document.getElementById('finalChannelBudgetBar');
+        const finalChannelBudgetLegend = document.getElementById('finalChannelBudgetLegend');
+        const finalTotalBudget = document.getElementById('finalTotalBudget');
+        const finalProjectedRevenue = document.getElementById('finalProjectedRevenue');
+        const finalKeyMetricTitle = document.getElementById('finalKeyMetricTitle');
+        const finalKeyMetricValue = document.getElementById('finalKeyMetricValue');
+        const finalPerformanceTable = document.getElementById('finalPerformanceTable');
+        const backToDashboardButton = document.getElementById('backToDashboard');
+        const exportFinalScenarioButton = document.getElementById('exportFinalScenario');
+        
+        // Step 1 Events
+        startDateInput.addEventListener('change', updateCampaignDuration);
+        endDateInput.addEventListener('change', updateCampaignDuration);
+        campaignNameInput.addEventListener('input', validateStep1);
+        objectiveSelect.addEventListener('change', handleObjectiveChange);
+        totalBudgetInput.addEventListener('input', updateDailyBudget);
+        nextToStep2Button.addEventListener('click', moveToStep2);
+        
+        // Step 2 Events
+        backToStep1Button.addEventListener('click', moveToStep1);
+        nextToStep3Button.addEventListener('click', moveToStep3);
+        
+        // Set up channel selection
+        document.querySelectorAll('#channelSelection input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', validateStep2);
+        });
+        
+        // Set up performance goal radio buttons
+        performanceGoalRadios.forEach(radio => {
+            radio.addEventListener('change', updateGoalValueField);
+        });
+        
+        goalValueInput.addEventListener('input', validateStep2);
+        
+        // Step 3 Events
+        backToStep2Button.addEventListener('click', moveToStep2);
+        generateDashboardButton.addEventListener('click', generateDashboard);
+        
+        // Budget control events for Step 3
+        budgetControl.addEventListener('input', updateBudgetFromInput);
+        budgetSlider.addEventListener('input', updateBudgetFromSlider);
+        
+        // Dashboard Events
+        editCampaignButton.addEventListener('click', editCampaign);
+        viewFinalScenarioButton.addEventListener('click', showFinalScenario);
+        
+        // Final Scenario Events
+        backToDashboardButton.addEventListener('click', backToDashboard);
+        exportFinalScenarioButton.addEventListener('click', exportFinalScenario);
+        
+        // Tab navigation
+        tabLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                tabLinks.forEach(l => l.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                link.classList.add('active');
+                document.getElementById(link.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // Apply budget allocation
+        applyAllocationButton.addEventListener('click', applyBudgetAllocation);
+        
+        // Update budget from input field
+        function updateBudgetFromInput() {
+            const newBudget = parseFloat(budgetControl.value) || campaignData.totalBudget;
+            budgetSlider.value = newBudget;
+            campaignData.totalBudget = newBudget;
+            budgetValue.textContent = formatCurrency(newBudget);
+            updateTargetAchievement();
+        }
+        
+        // Update budget from slider
+        function updateBudgetFromSlider() {
+            const newBudget = parseFloat(budgetSlider.value);
+            budgetControl.value = newBudget;
+            campaignData.totalBudget = newBudget;
+            budgetValue.textContent = formatCurrency(newBudget);
+            updateTargetAchievement();
+        }
+        
+        // Function to update campaign duration - CORRETTO
+        function updateCampaignDuration() {
+            const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
+            const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+            
+            if (startDate && endDate && startDateInput.value && endDateInput.value) {
+                // Aggiungiamo +1 per includere il giorno di inizio
+                const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                
+                campaignDurationElement.textContent = diffDays + ' days';
+                campaignData.duration = diffDays;
+                
+                // Aggiorna il budget giornaliero se il budget totale esiste
+                if (totalBudgetInput.value) {
+                    updateDailyBudget();
+                }
+            } else {
+                campaignDurationElement.textContent = '0 days';
+                campaignData.duration = 0;
+            }
+            
+            validateStep1();
+            
+            // Aggiorna il confronto target se l'obiettivo è selezionato
+            if (objectiveSelect.value) {
+                updateTargetComparison();
+            }
+        }
+        
+        // Function to update daily budget
+        function updateDailyBudget() {
+            const totalBudget = parseFloat(totalBudgetInput.value) || 0;
+            let dailyBudget = 0;
+            
+            if (campaignData.duration > 0 && totalBudget > 0) {
+                dailyBudget = totalBudget / campaignData.duration;
+            }
+            
+            dailyBudgetValue.textContent = formatCurrency(dailyBudget);
+            campaignData.dailyBudget = dailyBudget;
+            campaignData.totalBudget = totalBudget;
+            
+            // Update target comparison if objective is selected
+            if (objectiveSelect.value) {
+                updateTargetComparison();
+            }
+            
+            validateStep1();
+        }
+        
+        // Function to handle objective change
+        function handleObjectiveChange() {
+            const objective = objectiveSelect.value;
+            
+            // Clear target section
+            targetSection.innerHTML = '';
+            
+            if (objective) {
+                // Show target section
+                targetSection.style.display = 'block';
+                
+                // Create target input
+                const targetHTML = `
+                    <h3 class="form-group">Target Settings</h3>
+                    <div class="form-group">
+                        <label for="objectiveTarget">Target ${objectiveConfigs[objective].name} to Achieve</label>
+                        <input type="number" id="objectiveTarget" placeholder="Enter target value" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="objectiveCost">Historical Cost per ${objectiveConfigs[objective].name}</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">€</div>
+                            <input type="number" id="objectiveCost" class="input-with-prefix" placeholder="Enter historical cost" min="0.01" step="0.01" value="${objectiveConfigs[objective].defaultCost}">
+                        </div>
+                    </div>
+                    <div id="targetComparison"></div>
+                `;
+                
+                targetSection.innerHTML = targetHTML;
+                
+                // Add event listeners to new inputs
+                document.getElementById('objectiveTarget').addEventListener('input', updateTargetComparison);
+                document.getElementById('objectiveCost').addEventListener('input', updateTargetComparison);
+                
+                updateTargetComparison();
+            } else {
+                targetSection.style.display = 'none';
+            }
+            
+            validateStep1();
+        }
+        
+        // Function to update target comparison
+        function updateTargetComparison() {
+            const targetComparisonContainer = document.getElementById('targetComparison');
+            if (!targetComparisonContainer) return;
+            
+            const objective = objectiveSelect.value;
+            if (!objective) return;
+            
+            const targetInput = document.getElementById('objectiveTarget');
+            const costInput = document.getElementById('objectiveCost');
+            
+            const target = parseInt(targetInput.value) || 0;
+            const cost = parseFloat(costInput.value) || 0;
+            const totalBudget = parseFloat(totalBudgetInput.value) || 0;
+            
+            if (target > 0 && cost > 0 && totalBudget > 0) {
+                const budgetNeeded = target * cost;
+                const isEnough = totalBudget >= budgetNeeded;
+                const achievableTarget = Math.floor(totalBudget / cost);
+                const budgetPercentageMissing = isEnough ? 0 : ((budgetNeeded - totalBudget) / budgetNeeded) * 100;
+                
+                let comparisonHTML = '';
+                
+                if (isEnough) {
+                    comparisonHTML = `
+                        <div class="target-comparison success">
+                            <div class="target-comparison-text">
+                                Your budget is sufficient! You can achieve up to ${formatNumber(achievableTarget)} ${objectiveConfigs[objective].name}.
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    comparisonHTML = `
+                        <div class="target-comparison error">
+                            <div class="target-comparison-text">
+                                Budget insufficient! You need ${formatCurrency(budgetNeeded)} to achieve your target (${formatPercentage(budgetPercentageMissing)} more needed).
+                                <br>With current budget, you can achieve ${formatNumber(achievableTarget)} ${objectiveConfigs[objective].name}.
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                targetComparisonContainer.innerHTML = comparisonHTML;
+                
+                // Save objective target and cost to campaign data
+                campaignData.objectiveTarget = target;
+                campaignData.objectiveCost = cost;
+            } else {
+                targetComparisonContainer.innerHTML = '';
+            }
+            
+            validateStep1();
+        }
+        
+        // Validate Step 1 - CORRETTO
+        function validateStep1() {
+            const objective = objectiveSelect.value;
+            let targetValid = true;
+            
+            if (objective) {
+                const targetInput = document.getElementById('objectiveTarget');
+                const costInput = document.getElementById('objectiveCost');
+                
+                if (targetInput && costInput) {
+                    const target = parseInt(targetInput.value) || 0;
+                    const cost = parseFloat(costInput.value) || 0;
+                    
+                    targetValid = target > 0 && cost > 0;
+                    
+                    // Add visual validation
+                    if (targetInput.value) {
+                        if (target > 0) {
+                            targetInput.classList.add('input-success');
+                            targetInput.classList.remove('input-error');
+                        } else {
+                            targetInput.classList.add('input-error');
+                            targetInput.classList.remove('input-success');
+                        }
+                    } else {
+                        targetInput.classList.remove('input-success', 'input-error');
+                    }
+                    
+                    if (costInput.value) {
+                        if (cost > 0) {
+                            costInput.classList.add('input-success');
+                            costInput.classList.remove('input-error');
+                        } else {
+                            costInput.classList.add('input-error');
+                            costInput.classList.remove('input-success');
+                        }
+                    } else {
+                        costInput.classList.remove('input-success', 'input-error');
+                    }
+                }
+            }
+            
+            // Se l'obiettivo non è impostato, ignora la validazione del target
+            if (!objective) {
+                targetValid = true;
+            }
+            
+            const isValid = (
+                campaignNameInput.value.trim() !== '' &&
+                startDateInput.value !== '' &&
+                endDateInput.value !== '' &&
+                campaignData.duration > 0 &&
+                totalBudgetInput.value.trim() !== '' &&
+                parseFloat(totalBudgetInput.value) > 0 &&
+                (objective === '' || (objective !== '' && targetValid))
+            );
+            
+            nextToStep2Button.disabled = !isValid;
+            nextToStep2Button.className = isValid ? 'btn btn-success' : 'btn btn-disabled';
+            
+            return isValid;
+        }
+        
+        // Move to Step 2
+        function moveToStep2() {
+            if (!validateStep1()) return;
+            
+            // Save data from Step 1
+            campaignData.name = campaignNameInput.value.trim();
+            campaignData.startDate = startDateInput.value;
+            campaignData.endDate = endDateInput.value;
+            campaignData.objective = objectiveSelect.value;
+            campaignData.totalBudget = parseFloat(totalBudgetInput.value);
+            
+            // Get objective target and cost
+            if (campaignData.objective) {
+                const targetInput = document.getElementById('objectiveTarget');
+                const costInput = document.getElementById('objectiveCost');
+                
+                if (targetInput && costInput) {
+                    campaignData.objectiveTarget = parseInt(targetInput.value) || 0;
+                    campaignData.objectiveCost = parseFloat(costInput.value) || 0;
+                }
+            }
+            
+            // Update Step 2 Recap
+            updateStep2Recap();
+            
+            // Show Step 2
+            step1.classList.remove('step-active');
+            step2.classList.add('step-active');
+            
+            // Uncheck all channels by default
+            document.querySelectorAll('#channelSelection input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Preselect the correct performance goal based on the objective
+            if (campaignData.objective) {
+                switch (campaignData.objective) {
+                    case 'traffic':
+                    case 'profile_visits':
+                        document.getElementById('goal_conversions').checked = true;
+                        campaignData.performanceGoal.type = 'conversions';
+                        campaignData.performanceGoal.value = campaignData.objectiveTarget || 0;
+                        break;
+                    case 'leads':
+                        document.getElementById('goal_cpa').checked = true;
+                        campaignData.performanceGoal.type = 'cpa';
+                        campaignData.performanceGoal.value = campaignData.objectiveCost || 0;
+                        break;
+                    case 'sales':
+                        document.getElementById('goal_roas').checked = true;
+                        campaignData.performanceGoal.type = 'roas';
+                        campaignData.performanceGoal.value = 4.0; // Default ROAS target
+                        break;
+                }
+            }
+            
+            validateStep2();
+        }
+        
+        // Update Step 2 Recap
+        function updateStep2Recap() {
+            let recapText = '';
+            
+            if (campaignData.objective && campaignData.objectiveTarget > 0) {
+                recapText = `Campaign Objective: ${objectiveConfigs[campaignData.objective].name} | Target: ${formatNumber(campaignData.objectiveTarget)} | Budget: ${formatCurrency(campaignData.totalBudget)}`;
+                
+                const budgetNeeded = campaignData.objectiveTarget * campaignData.objectiveCost;
+                const isEnough = campaignData.totalBudget >= budgetNeeded;
+                
+                if (isEnough) {
+                    step2Recap.classList.add('success');
+                    step2Recap.style.backgroundColor = 'rgba(76, 201, 240, 0.1)';
+                    step2Recap.style.borderLeftColor = 'var(--success)';
+                } else {
+                    step2Recap.classList.add('error');
+                    step2Recap.style.backgroundColor = 'rgba(239, 71, 111, 0.1)';
+                    step2Recap.style.borderLeftColor = 'var(--danger)';
+                }
+            } else {
+                recapText = `Campaign: ${campaignData.name} | Budget: ${formatCurrency(campaignData.totalBudget)} | Duration: ${campaignData.duration} days`;
+            }
+            
+            step2Recap.querySelector('.goal-text').textContent = recapText;
+        }
+        
+        // Update goal value field based on selected goal type
+        function updateGoalValueField() {
+            const selectedGoal = document.querySelector('input[name="goal"]:checked');
+            
+            if (selectedGoal) {
+                goalValueContainer.style.display = 'block';
+                
+                switch (selectedGoal.value) {
+                    case 'conversions':
+                        goalValuePrefix.textContent = '#';
+                        goalValueInput.placeholder = 'Enter target conversions';
+                        break;
+                    case 'cpa':
+                        goalValuePrefix.textContent = '€';
+                        goalValueInput.placeholder = 'Enter target CPA';
+                        break;
+                    case 'roas':
+                        goalValuePrefix.textContent = '';
+                        goalValueInput.placeholder = 'Enter target ROAS (e.g. 4 for 4x)';
+                        break;
+                }
+                
+                validateStep2();
+            } else {
+                goalValueContainer.style.display = 'none';
+            }
+        }
+        
+        // Move to Step 1
+        function moveToStep1() {
+            step2.classList.remove('step-active');
+            step1.classList.add('step-active');
+        }
+        
+        // Validate Step 2
+        function validateStep2() {
+            const selectedChannels = document.querySelectorAll('#channelSelection input:checked');
+            
+            // In step 2, we only care about channel selection since we're hiding the performance goal section
+            const isValid = selectedChannels.length > 0;
+            
+            // If we're using the objective from step 1, make sure we set the performance goal
+            if (campaignData.objective) {
+                switch (campaignData.objective) {
+                    case 'traffic':
+                    case 'profile_visits':
+                        campaignData.performanceGoal = {
+                            type: 'conversions',
+                            value: campaignData.objectiveTarget || 0
+                        };
+                        break;
+                    case 'leads':
+                        campaignData.performanceGoal = {
+                            type: 'cpa',
+                            value: campaignData.objectiveCost || 0
+                        };
+                        break;
+                    case 'sales':
+                        campaignData.performanceGoal = {
+                            type: 'roas',
+                            value: 4.0 // Default ROAS target
+                        };
+                        break;
+                }
+            }
+            
+            nextToStep3Button.disabled = !isValid;
+            nextToStep3Button.className = isValid ? 'btn btn-success' : 'btn btn-disabled';
+            
+            return isValid;
+        }
+        
+        // Move to Step 3
+        function moveToStep3() {
+            if (!validateStep2()) return;
+            
+            // Save channel selections from Step 2
+            campaignData.channels = [];
+            document.querySelectorAll('#channelSelection input:checked').forEach(checkbox => {
+                campaignData.channels.push(checkbox.value);
+            });
+            
+            // Update goal indicator text
+            updateGoalIndicator(goalIndicator);
+            
+            // Set up budget control
+            budgetControl.value = campaignData.totalBudget;
+            budgetSlider.value = campaignData.totalBudget;
+            budgetSlider.min = Math.max(1000, campaignData.totalBudget * 0.1);
+            budgetSlider.max = campaignData.totalBudget * 10;
+            budgetValue.textContent = formatCurrency(campaignData.totalBudget);
+            
+            // Generate historical data inputs
+            generateHistoricalDataInputs();
+            
+            // Show Step 3
+            step2.classList.remove('step-active');
+            step3.classList.add('step-active');
+            
+            // Initial check for target achievement
+            updateTargetAchievement();
+        }
+        
+        // Update goal indicator text
+        function updateGoalIndicator(element) {
+            let goalText = '';
+            
+            // Usa sempre l'obiettivo originale della campagna come riferimento principale
+            if (campaignData.objective && objectiveConfigs[campaignData.objective]) {
+                const objectiveName = objectiveConfigs[campaignData.objective].name;
+                const targetValue = formatNumber(campaignData.objectiveTarget);
+                
+                goalText = `Your goal is to achieve ${targetValue} ${objectiveName}`;
+            } else {
+                // Fallback sui performance goal se l'obiettivo principale non è impostato
+                const { type, value } = campaignData.performanceGoal;
+                
+                switch (type) {
+                    case 'conversions':
+                        goalText = `Your goal is to achieve ${formatNumber(value)} conversions`;
+                        break;
+                    case 'cpa':
+                        goalText = `Your goal is to achieve a Cost Per Acquisition of ${formatCurrency(value)}`;
+                        break;
+                    case 'roas':
+                        goalText = `Your goal is to achieve a Return On Ad Spend of ${formatRoas(value)}`;
+                        break;
+                }
+            }
+            
+            element.querySelector('.goal-text').textContent = goalText;
+        }
+        
+        // Generate historical data inputs for Step 3
+        function generateHistoricalDataInputs() {
+            historicalDataInputs.innerHTML = '';
+            
+            campaignData.channels.forEach(channel => {
+                const channelConfig = channelConfigs[channel];
+                
+                const channelSection = document.createElement('div');
+                channelSection.classList.add('channel-section', `channel-${channel}`);
+                
+                const channelHeader = document.createElement('div');
+                channelHeader.classList.add('channel-header');
+                channelHeader.innerHTML = `<h3 class="channel-title ${channel}">${channelConfig.name}</h3>`;
+                
+                channelSection.appendChild(channelHeader);
+                
+                const metricsGrid = document.createElement('div');
+                metricsGrid.classList.add('metric-input-grid');
+                
+                // Create inputs for each metric
+                Object.keys(channelConfig.metrics).forEach(metricKey => {
+                    const metricConfig = channelConfig.metrics[metricKey];
+                    
+                    const metricInputGroup = document.createElement('div');
+                    metricInputGroup.classList.add('metric-input-group');
+                    if (metricConfig.calculated) {
+                        metricInputGroup.classList.add('calculated');
+                    }
+                    
+                    const label = document.createElement('label');
+                    label.setAttribute('for', `${channel}_${metricKey}`);
+                    label.innerHTML = `
+                        ${metricConfig.name} 
+                        ${metricConfig.calculated ? '<span class="auto-calculate">Auto-calculated</span>' : ''}
+                        <span class="tooltip-icon">ⓘ</span>
+                    `;
+                    
+                    const tooltip = document.createElement('div');
+                    tooltip.classList.add('tooltip');
+                    tooltip.textContent = metricConfig.tooltip;
+                    
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.id = `${channel}_${metricKey}`;
+                    input.placeholder = `Enter ${metricConfig.name}`;
+                    input.step = '0.01';
+                    input.min = '0';
+                    
+                    // Set default value for the input
+                    if (metricConfig.default > 0) {
+                        input.value = metricConfig.default;
+                        input.classList.add('input-success');
+                    } else {
+                        input.classList.add('input-error');
+                    }
+                    
+                    // Add event listeners for auto-calculation and validation
+                    input.addEventListener('input', () => {
+                        if (parseFloat(input.value) > 0) {
+                            input.classList.add('input-success');
+                            input.classList.remove('input-error');
+                        } else {
+                            input.classList.add('input-error');
+                            input.classList.remove('input-success');
+                        }
+                        
+                        calculateMetrics(channel);
+                        updateTargetAchievement();
+                    });
+                    
+                    if (metricConfig.calculated) {
+                        input.readOnly = true;
+                    }
+                    
+                    metricInputGroup.appendChild(label);
+                    metricInputGroup.appendChild(tooltip);
+                    metricInputGroup.appendChild(input);
+                    metricsGrid.appendChild(metricInputGroup);
+                });
+                
+                channelSection.appendChild(metricsGrid);
+                historicalDataInputs.appendChild(channelSection);
+                
+                // Initial calculation
+                calculateMetrics(channel);
+            });
+        }
+        
+        // Calculate related metrics automatically
+        function calculateMetrics(channel) {
+            const metrics = channelConfigs[channel].metrics;
+            const values = {};
+            
+            // Collect current input values
+            Object.keys(metrics).forEach(key => {
+                const input = document.getElementById(`${channel}_${key}`);
+                values[key] = parseFloat(input.value) || 0;
+            });
+            
+            // Calculate CTR
+            if (values.impressions > 0 && values.clicks > 0) {
+                values.ctr = (values.clicks / values.impressions) * 100;
+                document.getElementById(`${channel}_ctr`).value = values.ctr.toFixed(2);
+                document.getElementById(`${channel}_ctr`).classList.add('input-success');
+                document.getElementById(`${channel}_ctr`).classList.remove('input-error');
+            }
+            
+            // Calculate CPC
+            if (values.clicks > 0 && values.spend > 0) {
+                values.cpc = values.spend / values.clicks;
+                document.getElementById(`${channel}_cpc`).value = values.cpc.toFixed(2);
+                document.getElementById(`${channel}_cpc`).classList.add('input-success');
+                document.getElementById(`${channel}_cpc`).classList.remove('input-error');
+            }
+            
+            // Calculate Conversion Rate
+            if (values.clicks > 0 && values.conversions > 0) {
+                values.convRate = (values.conversions / values.clicks) * 100;
+                document.getElementById(`${channel}_convRate`).value = values.convRate.toFixed(2);
+                document.getElementById(`${channel}_convRate`).classList.add('input-success');
+                document.getElementById(`${channel}_convRate`).classList.remove('input-error');
+            }
+            
+            // Calculate CPA
+            if (values.conversions > 0 && values.spend > 0) {
+                values.cpa = values.spend / values.conversions;
+                document.getElementById(`${channel}_cpa`).value = values.cpa.toFixed(2);
+                document.getElementById(`${channel}_cpa`).classList.add('input-success');
+                document.getElementById(`${channel}_cpa`).classList.remove('input-error');
+            }
+            
+            // Calculate ROAS
+            if (values.spend > 0 && values.revenue > 0) {
+                values.roas = values.revenue / values.spend;
+                document.getElementById(`${channel}_roas`).value = values.roas.toFixed(2);
+                document.getElementById(`${channel}_roas`).classList.add('input-success');
+                document.getElementById(`${channel}_roas`).classList.remove('input-error');
+            }
+        }
+        
+        // Update target achievement based on historical data
+        function updateTargetAchievement() {
+            targetAchievementContent.innerHTML = '';
+            
+            // Collect metrics from all channels
+            const metrics = {};
+            let allMetricsValid = true;
+            
+            campaignData.channels.forEach(channel => {
+                metrics[channel] = {};
+                
+                Object.keys(channelConfigs[channel].metrics).forEach(metricKey => {
+                    const input = document.getElementById(`${channel}_${metricKey}`);
+                    const value = parseFloat(input.value) || 0;
+                    
+                    metrics[channel][metricKey] = value;
+                    
+                    // Check if non-calculated metrics have valid values
+                    if (!channelConfigs[channel].metrics[metricKey].calculated && value <= 0) {
+                        allMetricsValid = false;
+                    }
+                });
+            });
+            
+            if (!allMetricsValid) {
+                targetAchievementContent.innerHTML = `
+                    <div class="target-comparison error">
+                        <div class="target-comparison-text">
+                            Please fill in all required metrics to see target achievement analysis.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Usare sempre l'obiettivo della campagna come principale punto di riferimento
+            let comparisonText = '';
+            let targetAchievable = false;
+            
+            if (campaignData.objective && campaignData.objectiveTarget > 0) {
+                const objectiveName = objectiveConfigs[campaignData.objective].name;
+                const totalBudget = campaignData.totalBudget;
+                const objectiveTarget = campaignData.objectiveTarget;
+                
+                // Calcola quante conversioni possiamo ottenere con questo budget
+                let totalConversions = 0;
+                
+                campaignData.channels.forEach(channel => {
+                    const channelData = metrics[channel];
+                    const channelBudget = totalBudget / campaignData.channels.length; // Distribuzione uguale
+                    
+                    if (channelData.cpc > 0 && channelData.convRate > 0) {
+                        const clicks = channelBudget / channelData.cpc;
+                        const conversions = clicks * (channelData.convRate / 100);
+                        totalConversions += conversions;
+                    }
+                });
+                
+                // Determina se l'obiettivo è raggiungibile
+                targetAchievable = totalConversions >= objectiveTarget;
+                
+                if (targetAchievable) {
+                    comparisonText = `Based on historical data, you can achieve approximately ${formatNumber(totalConversions)} ${objectiveName} with your current budget of ${formatCurrency(totalBudget)}, exceeding your target of ${formatNumber(objectiveTarget)}.`;
+                } else {
+                    const percentageShort = ((objectiveTarget - totalConversions) / objectiveTarget) * 100;
+                    const budgetNeeded = (objectiveTarget / totalConversions) * totalBudget;
+                    
+                    comparisonText = `Based on historical data, you can achieve approximately ${formatNumber(totalConversions)} ${objectiveName} with your current budget, which is ${formatPercentage(percentageShort)} short of your target of ${formatNumber(objectiveTarget)}. Consider increasing your budget to approximately ${formatCurrency(budgetNeeded)}.`;
+                }
+            } else {
+                // Fallback sui performance goal come prima
+                const { type, value } = campaignData.performanceGoal;
+                
+                switch (type) {
+                    case 'conversions': {
+                        // Calcolo come prima
+                        let totalConversions = 0;
+                        let totalBudgetNeeded = 0;
+                        
+                        campaignData.channels.forEach(channel => {
+                            const channelData = metrics[channel];
+                            if (channelData.cpc > 0 && channelData.convRate > 0) {
+                                const channelBudget = campaignData.totalBudget / campaignData.channels.length;
+                                const potentialClicks = channelBudget / channelData.cpc;
+                                const potentialConversions = potentialClicks * (channelData.convRate / 100);
+                                
+                                totalConversions += potentialConversions;
+                                
+                                const targetConversionsPerChannel = value / campaignData.channels.length;
+                                const clicksNeeded = targetConversionsPerChannel / (channelData.convRate / 100);
+                                const budgetNeeded = clicksNeeded * channelData.cpc;
+                                
+                                totalBudgetNeeded += budgetNeeded;
+                            }
+                        });
+                        
+                        targetAchievable = totalConversions >= value;
+                        
+                        if (targetAchievable) {
+                            comparisonText = `Based on historical data, you can achieve approximately ${formatNumber(totalConversions)} conversions with your current budget of ${formatCurrency(campaignData.totalBudget)}, exceeding your target of ${formatNumber(value)}.`;
+                        } else {
+                            const percentageShort = ((value - totalConversions) / value) * 100;
+                            comparisonText = `Based on historical data, you can achieve approximately ${formatNumber(totalConversions)} conversions with your current budget, which is ${formatPercentage(percentageShort)} short of your target of ${formatNumber(value)}. Consider increasing your budget to ${formatCurrency(totalBudgetNeeded)}.`;
+                        }
+                        break;
+                    }
+                    case 'cpa': {
+                        // Calculate average CPA across channels
+                        let totalCPA = 0;
+                        let validChannelCount = 0;
+                        
+                        campaignData.channels.forEach(channel => {
+                            const channelData = metrics[channel];
+                            if (channelData.cpa > 0) {
+                                totalCPA += channelData.cpa;
+                                validChannelCount++;
+                            }
+                        });
+                        
+                        const avgCPA = validChannelCount > 0 ? totalCPA / validChannelCount : 0;
+                        
+                        targetAchievable = avgCPA > 0 && avgCPA <= value;
+                        
+                        if (targetAchievable) {
+                            comparisonText = `Based on historical data, your projected average CPA is ${formatCurrency(avgCPA)}, which is better than your target CPA of ${formatCurrency(value)}.`;
+                        } else {
+                            const percentageWorse = ((avgCPA - value) / value) * 100;
+                            comparisonText = `Based on historical data, your projected average CPA is ${formatCurrency(avgCPA)}, which is ${formatPercentage(percentageWorse)} higher than your target CPA of ${formatCurrency(value)}. Consider optimizing your campaigns for lower CPA.`;
+                        }
+                        break;
+                    }
+                    case 'roas': {
+                        // Calculate average ROAS across channels
+                        let totalROAS = 0;
+                        let validChannelCount = 0;
+                        
+                        campaignData.channels.forEach(channel => {
+                            const channelData = metrics[channel];
+                            if (channelData.roas > 0) {
+                                totalROAS += channelData.roas;
+                                validChannelCount++;
+                            }
+                        });
+                        
+                        const avgROAS = validChannelCount > 0 ? totalROAS / validChannelCount : 0;
+                        
+                        targetAchievable = avgROAS >= value;
+                        
+                        if (targetAchievable) {
+                            comparisonText = `Based on historical data, your projected average ROAS is ${formatRoas(avgROAS)}, which exceeds your target ROAS of ${formatRoas(value)}.`;
+                        } else {
+                            const percentageShort = ((value - avgROAS) / value) * 100;
+                            comparisonText = `Based on historical data, your projected average ROAS is ${formatRoas(avgROAS)}, which is ${formatPercentage(percentageShort)} short of your target ROAS of ${formatRoas(value)}. Consider optimizing your campaigns for higher ROAS.`;
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            // Display target achievement analysis
+            const targetComparisonClass = targetAchievable ? 'success' : 'error';
+            
+            targetAchievementContent.innerHTML = `
+                <div class="target-comparison ${targetComparisonClass}">
+                    <div class="target-comparison-text">
+                        ${comparisonText}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Collect historical data from inputs
+        function collectHistoricalData() {
+            campaignData.historicalData = {};
+            
+            campaignData.channels.forEach(channel => {
+                campaignData.historicalData[channel] = {};
+                
+                Object.keys(channelConfigs[channel].metrics).forEach(metricKey => {
+                    const inputValue = document.getElementById(`${channel}_${metricKey}`).value;
+                    let value = parseFloat(inputValue);
+                    
+                    // Convert percentages to decimals for calculation
+                    if (channelConfigs[channel].metrics[metricKey].format === 'percentage') {
+                        value = value / 100;
+                    }
+                    
+                    campaignData.historicalData[channel][metricKey] = value;
+                });
+            });
+        }
+        
+        // Generate different budget allocation scenarios
+        function generateScenarios() {
+            campaignData.scenarios = [];
+            
+            // Scenario 1: Equal distribution
+            const equalScenario = {
+                name: 'Equal Distribution',
+                description: 'Budget distributed equally among all channels',
+                allocation: {}
+            };
+            
+            const equalBudget = campaignData.totalBudget / campaignData.channels.length;
+            
+            campaignData.channels.forEach(channel => {
+                equalScenario.allocation[channel] = equalBudget;
+            });
+            
+            campaignScenarioCalculations(equalScenario);
+            campaignData.scenarios.push(equalScenario);
+            
+            // Scenario 2: Weighted by ROAS
+            const roasScenario = {
+                name: 'ROAS Weighted',
+                description: 'Budget allocated based on ROAS performance',
+                allocation: {}
+            };
+            
+            const totalRoas = campaignData.channels.reduce((sum, channel) => {
+                return sum + campaignData.historicalData[channel].roas;
+            }, 0);
+            
+            campaignData.channels.forEach(channel => {
+                const roasWeight = campaignData.historicalData[channel].roas / totalRoas;
+                roasScenario.allocation[channel] = campaignData.totalBudget * roasWeight;
+            });
+            
+            campaignScenarioCalculations(roasScenario);
+            campaignData.scenarios.push(roasScenario);
+            
+            // Scenario 3: Weighted by goal performance
+            const goalScenario = {
+                name: 'Goal Optimized',
+                description: 'Budget allocated to maximize your primary goal',
+                allocation: {}
+            };
+            
+            // Different allocation logic based on goal type
+            switch (campaignData.performanceGoal.type) {
+                case 'conversions': {
+                    // Allocate based on conversion rate and CPC efficiency
+                    const totalScore = campaignData.channels.reduce((sum, channel) => {
+                        const data = campaignData.historicalData[channel];
+                        const convScore = data.convRate / data.cpc; // Higher is better
+                        return sum + convScore;
+                    }, 0);
+                    
+                    campaignData.channels.forEach(channel => {
+                        const data = campaignData.historicalData[channel];
+                        const convScore = data.convRate / data.cpc;
+                        const weight = convScore / totalScore;
+                        goalScenario.allocation[channel] = campaignData.totalBudget * weight;
+                    });
+                    break;
+                }
+                case 'cpa': {
+                    // Allocate based on CPA (lower is better)
+                    const totalInverseCPA = campaignData.channels.reduce((sum, channel) => {
+                        const cpa = campaignData.historicalData[channel].cpa;
+                        return sum + (1 / cpa);
+                    }, 0);
+                    
+                    campaignData.channels.forEach(channel => {
+                        const cpa = campaignData.historicalData[channel].cpa;
+                        const weight = (1 / cpa) / totalInverseCPA;
+                        goalScenario.allocation[channel] = campaignData.totalBudget * weight;
+                    });
+                    break;
+                }
+                case 'roas': {
+                    // Allocate based on ROAS (higher is better)
+                    const totalRoas = campaignData.channels.reduce((sum, channel) => {
+                        return sum + campaignData.historicalData[channel].roas;
+                    }, 0);
+                    
+                    campaignData.channels.forEach(channel => {
+                        const roas = campaignData.historicalData[channel].roas;
+                        const weight = roas / totalRoas;
+                        goalScenario.allocation[channel] = campaignData.totalBudget * weight;
+                    });
+                    break;
+                }
+            }
+            
+            campaignScenarioCalculations(goalScenario);
+            campaignData.scenarios.push(goalScenario);
+            
+            // Scenario 4: Focus on best channel
+            const bestChannelScenario = {
+                name: 'Focus on Best Channel',
+                description: '70% to top performing channel, 30% distributed to others',
+                allocation: {}
+            };
+            
+            let bestChannel = campaignData.channels[0];
+            
+            // Determine best channel based on goal
+            switch (campaignData.performanceGoal.type) {
+                case 'conversions': {
+                    campaignData.channels.forEach(channel => {
+                        const currentScore = campaignData.historicalData[channel].convRate / campaignData.historicalData[channel].cpc;
+                        const bestScore = campaignData.historicalData[bestChannel].convRate / campaignData.historicalData[bestChannel].cpc;
+                        
+                        if (currentScore > bestScore) {
+                            bestChannel = channel;
+                        }
+                    });
+                    break;
+                }
+                case 'cpa': {
+                    campaignData.channels.forEach(channel => {
+                        if (campaignData.historicalData[channel].cpa < campaignData.historicalData[bestChannel].cpa) {
+                            bestChannel = channel;
+                        }
+                    });
+                    break;
+                }
+                case 'roas': {
+                    campaignData.channels.forEach(channel => {
+                        if (campaignData.historicalData[channel].roas > campaignData.historicalData[bestChannel].roas) {
+                            bestChannel = channel;
+                        }
+                    });
+                    break;
+                }
+            }
+            
+            const remainingBudget = campaignData.totalBudget * 0.3;
+            const remainingChannels = campaignData.channels.filter(ch => ch !== bestChannel);
+            
+            campaignData.channels.forEach(channel => {
+                if (channel === bestChannel) {
+                    bestChannelScenario.allocation[channel] = campaignData.totalBudget * 0.7;
+                } else {
+                    bestChannelScenario.allocation[channel] = remainingChannels.length > 0 ? 
+                        remainingBudget / remainingChannels.length : 0;
+                }
+            });
+            
+            campaignScenarioCalculations(bestChannelScenario);
+            campaignData.scenarios.push(bestChannelScenario);
+            
+            // Scenario 5: Custom Allocation (will be updated when user changes allocations)
+            const customScenario = {
+                name: 'Custom Allocation',
+                description: 'Your customized budget allocation',
+                allocation: {}
+            };
+            
+            // Start with equal allocation for custom scenario
+            campaignData.channels.forEach(channel => {
+                customScenario.allocation[channel] = equalBudget;
+            });
+            
+            campaignScenarioCalculations(customScenario);
+            campaignData.scenarios.push(customScenario);
+            
+            // Set a scenario as active based on goal
+            if (campaignData.performanceGoal.type) {
+                campaignData.activeScenario = goalScenario;
+            } else {
+                campaignData.activeScenario = equalScenario;
+            }
+        }
+        
+        // Calculate metrics for a scenario
+        function campaignScenarioCalculations(scenario) {
+            let totalClicks = 0;
+            let totalConversions = 0;
+            let totalRevenue = 0;
+            let totalCPA = 0;
+            
+            campaignData.channels.forEach(channel => {
+                const budget = scenario.allocation[channel];
+                const metrics = campaignData.historicalData[channel];
+                
+                // Calculate projected metrics
+                const cpc = metrics.cpc;
+                const convRate = metrics.convRate;
+                const roas = metrics.roas;
+                
+                const clicks = budget / cpc;
+                const conversions = clicks * convRate;
+                const revenue = budget * roas;
+                const cpa = conversions > 0 ? budget / conversions : 0;
+                
+                // Store channel projections in scenario
+                if (!scenario.channelProjections) {
+                    scenario.channelProjections = {};
+                }
+                
+                scenario.channelProjections[channel] = {
+                    clicks,
+                    conversions,
+                    revenue,
+                    cpa
+                };
+                
+                // Accumulate totals
+                totalClicks += clicks;
+                totalConversions += conversions;
+                totalRevenue += revenue;
+                
+                // Weighted average CPA
+                if (conversions > 0) {
+                    totalCPA += cpa * (conversions / (totalConversions || 1));
+                }
+            });
+            
+            // Store campaign totals
+            scenario.totalClicks = totalClicks;
+            scenario.totalConversions = totalConversions;
+            scenario.totalRevenue = totalRevenue;
+            scenario.totalRoas = totalRevenue / campaignData.totalBudget;
+            scenario.avgCPA = totalCPA;
+            
+            // Score scenario based on the goal
+            switch (campaignData.performanceGoal.type) {
+                case 'conversions':
+                    scenario.goalPerformance = totalConversions / campaignData.performanceGoal.value;
+                    break;
+                case 'cpa':
+                    // Lower CPA is better
+                    scenario.goalPerformance = campaignData.performanceGoal.value / totalCPA;
+                    break;
+                case 'roas':
+                    scenario.goalPerformance = scenario.totalRoas / campaignData.performanceGoal.value;
+                    break;
+            }
+        }
+        
+        // Generate the dashboard
+        function generateDashboard() {
+            // Collect historical data
+            collectHistoricalData();
+            
+            // Generate scenarios
+            generateScenarios();
+            
+            // Update dashboard title and subtitle
+            dashboardTitle.textContent = campaignData.name;
+            dashboardSubtitle.textContent = `${campaignData.duration} days • ${formatCurrency(campaignData.totalBudget)} • ${campaignData.channels.length} channels`;
+            
+            // Update goal indicator
+            updateGoalIndicator(goalIndicatorDashboard);
+            
+            // Update campaign recap
+            updateCampaignRecap();
+            
+            // Populate dashboard content
+            populateDashboardOverview();
+            populateChannelPerformance();
+            populateScenarios();
+            populateWhatIfAnalysis();
+            populateCurrentAllocation();
+            populateMetricsTable();
+            populateRecommendations();
+            
+            // Switch to dashboard view
+            onboardingSection.style.display = 'none';
+            dashboardSection.classList.add('dashboard-active');
+            finalScenarioRecap.style.display = 'none';
+        }
+        
+        // Update campaign recap
+        function updateCampaignRecap() {
+            let recapText = '';
+            
+            if (campaignData.objective && objectiveConfigs[campaignData.objective] && campaignData.objectiveTarget > 0) {
+                const objectiveName = objectiveConfigs[campaignData.objective].name;
+                recapText = `Objective: ${objectiveName} | Target: ${formatNumber(campaignData.objectiveTarget)} | Budget: ${formatCurrency(campaignData.totalBudget)} | Daily: ${formatCurrency(campaignData.dailyBudget)}`;
+            } else {
+                recapText = `Campaign: ${campaignData.name} | Budget: ${formatCurrency(campaignData.totalBudget)} | Duration: ${campaignData.duration} days`;
+            }
+            
+            campaignRecapText.textContent = recapText;
+        }
+        
+        // Edit campaign - go back to onboarding
+        function editCampaign() {
+            dashboardSection.classList.remove('dashboard-active');
+            finalScenarioRecap.style.display = 'none';
+            onboardingSection.style.display = 'block';
+            step1.classList.add('step-active');
+            step2.classList.remove('step-active');
+            step3.classList.remove('step-active');
+        }
+        
+        // Populate dashboard overview
+        function populateDashboardOverview() {
+            const activeScenario = campaignData.activeScenario;
+            
+            overviewTotalBudget.textContent = formatCurrency(campaignData.totalBudget);
+            overviewProjectedRevenue.textContent = formatCurrency(activeScenario.totalRevenue);
+            
+            // Set key metric based on campaign objective
+            if (campaignData.objective && objectiveConfigs[campaignData.objective]) {
+                const objectiveName = objectiveConfigs[campaignData.objective].name;
+                
+                overviewKeyMetricTitle.textContent = `Projected ${objectiveName}`;
+                overviewKeyMetricValue.textContent = formatNumber(activeScenario.totalConversions);
+                overviewKeyMetricTooltip.textContent = `Total projected ${objectiveName.toLowerCase()} based on historical performance`;
+            } else {
+                // Fallback to performance goal
+                switch (campaignData.performanceGoal.type) {
+                    case 'conversions':
+                        overviewKeyMetricTitle.textContent = 'Projected Conversions';
+                        overviewKeyMetricValue.textContent = formatNumber(activeScenario.totalConversions);
+                        overviewKeyMetricTooltip.textContent = 'Total projected conversions based on historical conversion rates';
+                        break;
+                    case 'cpa':
+                        overviewKeyMetricTitle.textContent = 'Projected CPA';
+                        overviewKeyMetricValue.textContent = formatCurrency(activeScenario.avgCPA);
+                        overviewKeyMetricTooltip.textContent = 'CPA = Cost / Conversions';
+                        break;
+                    case 'roas':
+                        overviewKeyMetricTitle.textContent = 'Projected ROAS';
+                        overviewKeyMetricValue.textContent = formatRoas(activeScenario.totalRoas);
+                        overviewKeyMetricTooltip.textContent = 'ROAS = Revenue / Cost';
+                        break;
+                }
+            }
+            
+            // Create budget allocation chart
+            createBudgetAllocationChart();
+            
+            // Create projected results chart
+            createProjectedResultsChart();
+        }
+        
+        // Create budget allocation chart
+        function createBudgetAllocationChart() {
+            const ctx = document.getElementById('budgetAllocationChart').getContext('2d');
+            
+            if (budgetAllocationChart) {
+                budgetAllocationChart.destroy();
+            }
+            
+            const labels = [];
+            const data = [];
+            const colors = [];
+            
+            campaignData.channels.forEach(channel => {
+                labels.push(channelConfigs[channel].name);
+                data.push(campaignData.activeScenario.allocation[channel]);
+                colors.push(channelConfigs[channel].color);
+            });
+            
+            budgetAllocationChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Budget Allocation by Channel',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Create projected results chart
+        function createProjectedResultsChart() {
+            const ctx = document.getElementById('projectedRevenueChart').getContext('2d');
+            
+            if (projectedRevenueChart) {
+                projectedRevenueChart.destroy();
+            }
+            
+            const labels = [];
+            const budgetData = [];
+            const resultData = [];
+            const colors = [];
+            
+            // Determine what metric to show based on objective or goal
+            let metricName = 'Revenue';
+            let metricFormatter = formatCurrency;
+            
+            if (campaignData.objective && objectiveConfigs[campaignData.objective]) {
+                metricName = objectiveConfigs[campaignData.objective].name;
+                metricFormatter = formatNumber;
+            } else {
+                // Fallback to performance goal
+                switch (campaignData.performanceGoal.type) {
+                    case 'conversions':
+                        metricName = 'Conversions';
+                        metricFormatter = formatNumber;
+                        break;
+                    case 'cpa':
+                        metricName = 'Cost Per Acquisition';
+                        metricFormatter = formatCurrency;
+                        break;
+                    case 'roas':
+                        metricName = 'Return On Ad Spend';
+                        metricFormatter = formatRoas;
+                        break;
+                }
+            }
+            
+            campaignData.channels.forEach(channel => {
+                labels.push(channelConfigs[channel].name);
+                
+                const budget = campaignData.activeScenario.allocation[channel];
+                budgetData.push(budget);
+                
+                let resultValue;
+                if (campaignData.objective && objectiveConfigs[campaignData.objective]) {
+                    resultValue = campaignData.activeScenario.channelProjections[channel].conversions;
+                } else {
+                    // Fallback based on performance goal
+                    switch (campaignData.performanceGoal.type) {
+                        case 'conversions':
+                            resultValue = campaignData.activeScenario.channelProjections[channel].conversions;
+                            break;
+                        case 'cpa':
+                            resultValue = campaignData.activeScenario.channelProjections[channel].cpa;
+                            break;
+                        case 'roas':
+                            resultValue = campaignData.historicalData[channel].roas;
+                            break;
+                        default:
+                            resultValue = campaignData.activeScenario.channelProjections[channel].revenue;
+                    }
+                }
+                
+                resultData.push(resultValue);
+                colors.push(channelConfigs[channel].color);
+            });
+            
+            projectedRevenueChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Budget',
+                            data: budgetData,
+                            backgroundColor: colors.map(color => `${color}99`),
+                            borderColor: colors,
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: metricName,
+                            data: resultData,
+                            backgroundColor: colors.map(color => `${color}33`),
+                            borderColor: colors,
+                            borderWidth: 1,
+                            yAxisID: 'y1',
+                            type: campaignData.performanceGoal.type === 'roas' || campaignData.performanceGoal.type === 'cpa' ? 'line' : 'bar'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Budget vs. Projected ${metricName} by Channel`,
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    if (context.dataset.label === 'Budget') {
+                                        return `${context.dataset.label}: ${formatCurrency(value)}`;
+                                    } else {
+                                        return `${context.dataset.label}: ${metricFormatter(value)}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Budget (€)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: metricName
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return metricFormatter(value);
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Populate channel performance section
+        function populateChannelPerformance() {
+            channelPerformanceContent.innerHTML = '';
+            
+            campaignData.channels.forEach(channel => {
+                const channelConfig = channelConfigs[channel];
+                const channelData = campaignData.historicalData[channel];
+                
+                const channelSection = document.createElement('div');
+                channelSection.classList.add('channel-section', `channel-${channel}`);
+                
+                const channelHeader = document.createElement('div');
+                channelHeader.classList.add('channel-header');
+                channelHeader.innerHTML = `
+                    <h3 class="channel-title ${channel}">${channelConfig.name}</h3>
+                `;
+                
+                channelSection.appendChild(channelHeader);
+                
+                const channelMetrics = document.createElement('div');
+                channelMetrics.classList.add('channel-metrics');
+                
+                // Calculate additional metrics based on current allocation
+                const budget = campaignData.activeScenario.allocation[channel];
+                const cpc = channelData.cpc;
+                const ctr = channelData.ctr;
+                const convRate = channelData.convRate;
+                const roas = channelData.roas;
+                
+                const clicks = budget / cpc;
+                const impressions = clicks / ctr;
+                const conversions = clicks * convRate;
+                const revenue = budget * roas;
+                const cpa = budget / conversions;
+                
+                // Determine key metric based on campaign objective
+                const keyMetric = campaignData.objective && objectiveConfigs[campaignData.objective] ? 'conversions' : campaignData.performanceGoal.type;
+                
+                // Add metrics
+                const metricsToShow = [
+                    { name: 'Budget', value: formatCurrency(budget), key: false, tooltip: 'Allocated budget to this channel' },
+                    { name: 'Impressions', value: formatNumber(impressions), key: false, tooltip: 'Estimated number of ad impressions' },
+                    { name: 'Clicks', value: formatNumber(clicks), key: false, tooltip: 'Estimated number of clicks' },
+                    { name: 'CTR', value: formatPercentage(ctr * 100), key: false, tooltip: 'Click-Through Rate = Clicks / Impressions' },
+                    { name: 'CPC', value: formatCurrency(cpc), key: false, tooltip: 'Cost Per Click = Budget / Clicks' },
+                    { name: 'Conversions', value: formatNumber(conversions), key: keyMetric === 'conversions', tooltip: 'Estimated number of conversions' },
+                    { name: 'Conv. Rate', value: formatPercentage(convRate * 100), key: false, tooltip: 'Conversion Rate = Conversions / Clicks' },
+                    { name: 'CPA', value: formatCurrency(cpa), key: keyMetric === 'cpa', tooltip: 'Cost Per Acquisition = Budget / Conversions' },
+                    { name: 'Revenue', value: formatCurrency(revenue), key: false, tooltip: 'Estimated revenue based on ROAS' },
+                    { name: 'ROAS', value: formatRoas(roas), key: keyMetric === 'roas', tooltip: 'Return On Ad Spend = Revenue / Budget' }
+                ];
+                
+                metricsToShow.forEach(metric => {
+                    const metricElement = document.createElement('div');
+                    metricElement.classList.add('channel-metric');
+                    
+                    if (metric.key) {
+                        metricElement.classList.add('key-metric');
+                    }
+                    
+                    metricElement.innerHTML = `
+                        <div class="channel-metric-name">${metric.name}</div>
+                        <div class="channel-metric-value tooltip-container">
+                            <span class="has-tooltip">${metric.value}</span>
+                            <span class="tooltip-text"
+                            
+                            <span class="has-tooltip">${metric.value}</span>
+                            <span class="tooltip-text">${metric.tooltip}</span>
+                        </div>
+                    `;
+                    channelMetrics.appendChild(metricElement);
+                });
+                
+                channelSection.appendChild(channelMetrics);
+                channelPerformanceContent.appendChild(channelSection);
+            });
+        }
+        
+        // Populate scenarios section
+        function populateScenarios() {
+            scenariosContainer.innerHTML = '';
+            
+            // Sort scenarios by goal performance, descending
+            const sortedScenarios = [...campaignData.scenarios].sort((a, b) => {
+                let aValue, bValue;
+                
+                // Prioritize the objective if available
+                if (campaignData.objective && objectiveConfigs[campaignData.objective]) {
+                    aValue = a.totalConversions;
+                    bValue = b.totalConversions;
+                } else {
+                    // Fallback to performance goal
+                    switch (campaignData.performanceGoal.type) {
+                        case 'conversions':
+                            aValue = a.totalConversions;
+                            bValue = b.totalConversions;
+                            break;
+                        case 'cpa':
+                            aValue = b.avgCPA; // Lower is better, so invert comparison
+                            bValue = a.avgCPA;
+                            break;
+                        case 'roas':
+                            aValue = a.totalRoas;
+                            bValue = b.totalRoas;
+                            break;
+                        default:
+                            aValue = a.totalRevenue;
+                            bValue = b.totalRevenue;
+                    }
+                }
+                
+                return bValue - aValue;
+            });
+            
+            sortedScenarios.forEach((scenario, index) => {
+                const scenarioElement = document.createElement('div');
+                scenarioElement.classList.add('scenario');
+                
+                if (scenario === campaignData.activeScenario) {
+                    scenarioElement.classList.add('active');
+                }
+                
+                // Determine what to show based on objective or goal
+                let metricValue = '';
+                
+                if (campaignData.objective && objectiveConfigs[campaignData.objective]) {
+                    const objectiveName = objectiveConfigs[campaignData.objective].name;
+                    metricValue = `${formatNumber(scenario.totalConversions)} ${objectiveName}`;
+                } else {
+                    // Fallback to performance goal
+                    switch (campaignData.performanceGoal.type) {
+                        case 'conversions':
+                            metricValue = `${formatNumber(scenario.totalConversions)} conversions`;
+                            break;
+                        case 'cpa':
+                            metricValue = `${formatCurrency(scenario.avgCPA)} CPA`;
+                            break;
+                        case 'roas':
+                            metricValue = `${formatRoas(scenario.totalRoas)} ROAS`;
+                            break;
+                        default:
+                            metricValue = formatCurrency(scenario.totalRevenue);
+                    }
+                }
+                
+                scenarioElement.innerHTML = `
+                    <div>
+                        <div class="scenario-name">${scenario.name}</div>
+                        <div class="scenario-desc">${scenario.description}</div>
+                    </div>
+                    <div class="scenario-metrics">
+                        <div class="scenario-roas">${metricValue}</div>
+                        <div class="scenario-revenue">${formatCurrency(scenario.totalRevenue)} revenue</div>
+                    </div>
+                `;
+                
+                scenarioElement.addEventListener('click', () => {
+                    // Set this scenario as active
+                    campaignData.activeScenario = scenario;
+                    
+                    // Update custom scenario allocation with active scenario for sliders
+                    if (scenario !== campaignData.scenarios[campaignData.scenarios.length - 1]) {
+                        const customScenario = campaignData.scenarios[campaignData.scenarios.length - 1];
+                        
+                        campaignData.channels.forEach(channel => {
+                            customScenario.allocation[channel] = scenario.allocation[channel];
+                        });
+                        
+                        campaignScenarioCalculations(customScenario);
+                    }
+                    
+                    // Update UI
+                    populateDashboardOverview();
+                    populateChannelPerformance();
+                    populateScenarios();
+                    populateCurrentAllocation();
+                    populateMetricsTable();
+                });
+                
+                scenariosContainer.appendChild(scenarioElement);
+            });
+            
+            // Create scenarios comparison chart
+            createScenariosComparisonChart();
+            
+            // Setup final scenario selection
+            finalScenarioSelect.checked = false;
+            finalScenarioSelect.addEventListener('change', () => {
+                if (finalScenarioSelect.checked) {
+                    campaignData.finalScenario = campaignData.activeScenario;
+                    viewFinalScenarioButton.classList.add('btn-success');
+                    viewFinalScenarioButton.classList.remove('btn-primary');
+                } else {
+                    campaignData.finalScenario = null;
+                    viewFinalScenarioButton.classList.add('btn-primary');
+                    viewFinalScenarioButton.classList.remove('btn-success');
+                }
+            });
+        }
+        
+        // Create scenarios comparison chart
+        function createScenariosComparisonChart() {
+            const ctx = document.getElementById('scenariosComparisonChart').getContext('2d');
+            
+            if (scenariosComparisonChart) {
+                scenariosComparisonChart.destroy();
+            }
+            
+            const labels = campaignData.scenarios.map(scenario => scenario.name);
+            
+            // Determine metrics to show based on objective or goal
+            let primaryMetricName = 'ROAS';
+            let primaryMetricData = campaignData.scenarios.map(scenario => scenario.totalRoas);
+            let primaryMetricFormatter = formatRoas;
+            
+            if (campaignData.objective && objectiveConfigs[campaignData.objective]) {
+                primaryMetricName = objectiveConfigs[campaignData.objective].name;
+                primaryMetricData = campaignData.scenarios.map(scenario => scenario.totalConversions);
+                primaryMetricFormatter = formatNumber;
+            } else {
+                // Fallback to performance goal
+                switch (campaignData.performanceGoal.type) {
+                    case 'conversions':
+                        primaryMetricName = 'Conversions';
+                        primaryMetricData = campaignData.scenarios.map(scenario => scenario.totalConversions);
+                        primaryMetricFormatter = formatNumber;
+                        break;
+                    case 'cpa':
+                        primaryMetricName = 'CPA';
+                        primaryMetricData = campaignData.scenarios.map(scenario => scenario.avgCPA);
+                        primaryMetricFormatter = formatCurrency;
+                        break;
+                    case 'roas':
+                        primaryMetricName = 'ROAS';
+                        primaryMetricData = campaignData.scenarios.map(scenario => scenario.totalRoas);
+                        primaryMetricFormatter = formatRoas;
+                        break;
+                }
+            }
+            
+            const revenueData = campaignData.scenarios.map(scenario => scenario.totalRevenue);
+            
+            scenariosComparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: primaryMetricName,
+                            data: primaryMetricData,
+                            backgroundColor: 'rgba(67, 97, 238, 0.7)',
+                            borderColor: 'rgba(67, 97, 238, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Revenue',
+                            data: revenueData,
+                            backgroundColor: 'rgba(76, 201, 240, 0.7)',
+                            borderColor: 'rgba(76, 201, 240, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                            
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Scenario Comparison',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    if (context.dataset.label === primaryMetricName) {
+                                        return `${context.dataset.label}: ${primaryMetricFormatter(value)}`;
+                                    } else {
+                                        return `${context.dataset.label}: ${formatCurrency(value)}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: primaryMetricName
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return primaryMetricFormatter(value);
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Revenue'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Populate what-if analysis section
+        function populateWhatIfAnalysis() {
+            // Populate channel select
+            whatIfChannel.innerHTML = '';
+            
+            campaignData.channels.forEach(channel => {
+                const option = document.createElement('option');
+                option.value = channel;
+                option.textContent = channelConfigs[channel].name;
+                whatIfChannel.appendChild(option);
+            });
+            
+            // Select first channel by default
+            if (campaignData.channels.length > 0) {
+                whatIfChannel.value = campaignData.channels[0];
+                updateWhatIfControls();
+            }
+            
+            // Set event listener for channel change
+            whatIfChannel.addEventListener('change', updateWhatIfControls);
+        }
+        
+        // Update what-if controls based on selected channel
+        function updateWhatIfControls() {
+            const channel = whatIfChannel.value;
+            if (!channel) return;
+            
+            whatIfControls.innerHTML = '';
+            
+            // Create sliders for primary metrics
+            const metrics = [
+                { id: 'ctr', name: 'CTR', format: 'percentage', min: 0, max: 10, step: 0.1 },
+                { id: 'cpc', name: 'CPC', format: 'currency', min: 0, max: 5, step: 0.01 },
+                { id: 'convRate', name: 'Conversion Rate', format: 'percentage', min: 0, max: 10, step: 0.1 }
+            ];
+            
+            metrics.forEach(metric => {
+                let value;
+                
+                if (metric.format === 'percentage') {
+                    value = campaignData.historicalData[channel][metric.id] * 100;
+                } else {
+                    value = campaignData.historicalData[channel][metric.id];
+                }
+                
+                const sliderContainer = document.createElement('div');
+                sliderContainer.classList.add('what-if-slider');
+                
+                const sliderHeader = document.createElement('div');
+                sliderHeader.classList.add('what-if-header');
+                
+                const sliderTitle = document.createElement('div');
+                sliderTitle.classList.add('what-if-title');
+                sliderTitle.textContent = metric.name;
+                
+                const sliderValue = document.createElement('div');
+                sliderValue.classList.add('what-if-value');
+                
+                if (metric.format === 'percentage') {
+                    sliderValue.textContent = formatPercentage(value);
+                } else if (metric.format === 'currency') {
+                    sliderValue.textContent = formatCurrency(value);
+                } else {
+                    sliderValue.textContent = formatRoas(value);
+                }
+                
+                sliderHeader.appendChild(sliderTitle);
+                sliderHeader.appendChild(sliderValue);
+                
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = metric.min;
+                slider.max = metric.max;
+                slider.step = metric.step;
+                slider.value = value;
+                slider.classList.add('slider');
+                slider.setAttribute('data-metric', metric.id);
+                slider.setAttribute('data-format', metric.format);
+                
+                const sliderLabels = document.createElement('div');
+                sliderLabels.classList.add('slider-labels');
+                
+                if (metric.format === 'percentage') {
+                    sliderLabels.innerHTML = `<span>${metric.min}%</span><span>${metric.max}%</span>`;
+                } else if (metric.format === 'currency') {
+                    sliderLabels.innerHTML = `<span>€${metric.min}</span><span>€${metric.max}</span>`;
+                } else {
+                    sliderLabels.innerHTML = `<span>${metric.min}x</span><span>${metric.max}x</span>`;
+                }
+                
+                // Add event listener to update metrics immediately
+                slider.addEventListener('input', () => {
+                    const newValue = parseFloat(slider.value);
+                    const metricId = slider.getAttribute('data-metric');
+                    const format = slider.getAttribute('data-format');
+                    
+                    if (format === 'percentage') {
+                        sliderValue.textContent = formatPercentage(newValue);
+                        campaignData.historicalData[channel][metricId] = newValue / 100;
+                    } else {
+                        if (format === 'currency') {
+                            sliderValue.textContent = formatCurrency(newValue);
+                        } else {
+                            sliderValue.textContent = formatRoas(newValue);
+                        }
+                        campaignData.historicalData[channel][metricId] = newValue;
+                    }
+                    
+                    // Update what-if results
+                    updateWhatIfResults(channel);
+                });
+                
+                sliderContainer.appendChild(sliderHeader);
+                sliderContainer.appendChild(slider);
+                sliderContainer.appendChild(sliderLabels);
+                
+                whatIfControls.appendChild(sliderContainer);
+            });
+            
+            // Initial update
+            updateWhatIfResults(channel);
+        }
+        
+        // Update what-if results based on current values
+        function updateWhatIfResults(channel) {
+            const metrics = campaignData.historicalData[channel];
+            const budget = campaignData.activeScenario.allocation[channel];
+            
+            // Calculate key metrics
+            const clicks = budget / metrics.cpc;
+            const conversions = clicks * metrics.convRate;
+            const revenue = metrics.roas ? budget * metrics.roas : conversions * metrics.revenue;
+            const cpa = conversions > 0 ? budget / conversions : 0;
+            
+            // Update results display
+            whatIfResults.innerHTML = '';
+            
+            const resultMetrics = [
+                { name: 'Clicks', value: formatNumber(clicks), tooltip: 'Projected clicks based on current CPC' },
+                { name: 'Conversions', value: formatNumber(conversions), tooltip: 'Projected conversions based on conversion rate and clicks' },
+                { name: 'CPA', value: formatCurrency(cpa), tooltip: 'Cost Per Acquisition = Budget / Conversions' },
+                { name: 'Revenue', value: formatCurrency(revenue), tooltip: 'Projected revenue based on ROAS and budget' }
+            ];
+            
+            resultMetrics.forEach(metric => {
+                const metricElement = document.createElement('div');
+                metricElement.classList.add('what-if-metric');
+                
+                metricElement.innerHTML = `
+                    <div class="what-if-metric-name">${metric.name}</div>
+                    <div class="what-if-metric-value tooltip-container">
+                        <span class="has-tooltip">${metric.value}</span>
+                        <span class="tooltip-text">${metric.tooltip}</span>
+                    </div>
+                `;
+                
+                whatIfResults.appendChild(metricElement);
+            });
+            
+            // Update what-if impact chart
+            createWhatIfImpactChart(channel);
+            
+            // Recalculate scenarios to reflect changed metrics
+            campaignData.scenarios.forEach(scenario => {
+                campaignScenarioCalculations(scenario);
+            });
+        }
+        
+        // Create what-if impact chart
+        function createWhatIfImpactChart(channel) {
+            const ctx = document.getElementById('whatIfImpactChart').getContext('2d');
+            
+            if (whatIfImpactChart) {
+                whatIfImpactChart.destroy();
+            }
+            
+            // Calculate baseline and current values
+            const budget = campaignData.activeScenario.allocation[channel];
+            const metrics = campaignData.historicalData[channel];
+            
+            // Current values
+            const clicks = budget / metrics.cpc;
+            const conversions = clicks * metrics.convRate;
+            const revenue = metrics.roas ? budget * metrics.roas : conversions * metrics.revenue;
+            
+            whatIfImpactChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Impact on Performance'],
+                    datasets: [
+                        {
+                            label: 'Clicks',
+                            data: [clicks],
+                            backgroundColor: 'rgba(65, 131, 215, 0.7)',
+                            borderColor: 'rgba(65, 131, 215, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Conversions',
+                            data: [conversions],
+                            backgroundColor: 'rgba(26, 188, 156, 0.7)',
+                            borderColor: 'rgba(26, 188, 156, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Revenue',
+                            data: [revenue],
+                            backgroundColor: 'rgba(155, 89, 182, 0.7)',
+                            borderColor: 'rgba(155, 89, 182, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Projected Performance for ${channelConfigs[channel].name}`,
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label;
+                                    const value = context.raw;
+                                    
+                                    switch (label) {
+                                        case 'Clicks':
+                                            return `${label}: ${formatNumber(value)}`;
+                                        case 'Conversions':
+                                            return `${label}: ${formatNumber(value)}`;
+                                        case 'Revenue':
+                                            return `${label}: ${formatCurrency(value)}`;
+                                        default:
+                                            return `${label}: ${value}`;
+                                    }
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    // Simple formatting that works for all metrics on same scale
+                                    if (value >= 1000) {
+                                        return value / 1000 + 'k';
+                                    }
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Populate current allocation section
+        function populateCurrentAllocation() {
+            currentAllocation.innerHTML = '';
+            
+            campaignData.channels.forEach(channel => {
+                const allocation = campaignData.activeScenario.allocation[channel];
+                const percentage = (allocation / campaignData.totalBudget) * 100;
+                
+                const channelAllocation = document.createElement('div');
+                channelAllocation.classList.add('form-group');
+                
+                channelAllocation.innerHTML = `
+                    <label class="${channel}">${channelConfigs[channel].name}</label>
+                    <div class="tooltip-container">
+                        <span class="has-tooltip">${formatCurrency(allocation)} (${percentage.toFixed(1)}%)</span>
+                        <span class="tooltip-text">Budget allocated to ${channelConfigs[channel].name}</span>
+                    </div>
+                `;
+                
+                currentAllocation.appendChild(channelAllocation);
+            });
+            
+            // Create budget sliders
+            populateBudgetSliders();
+        }
+        
+        // Populate budget sliders
+        function populateBudgetSliders() {
+            budgetSliders.innerHTML = '';
+            
+            campaignData.channels.forEach(channel => {
+                const customScenario = campaignData.scenarios[campaignData.scenarios.length - 1];
+                const allocation = customScenario.allocation[channel];
+                const percentage = (allocation / campaignData.totalBudget) * 100;
+                
+                const sliderContainer = document.createElement('div');
+                sliderContainer.classList.add('slider-container');
+                
+                const sliderLabel = document.createElement('label');
+                sliderLabel.classList.add(channel);
+                sliderLabel.textContent = channelConfigs[channel].name;
+                
+                const sliderValue = document.createElement('div');
+                sliderValue.classList.add('slider-value');
+                sliderValue.textContent = `${formatCurrency(allocation)} (${percentage.toFixed(1)}%)`;
+                
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = 0;
+                slider.max = 100;
+                slider.step = 1;
+                slider.value = percentage;
+                slider.classList.add('slider');
+                slider.dataset.channel = channel;
+                
+                const sliderLabels = document.createElement('div');
+                sliderLabels.classList.add('slider-labels');
+                sliderLabels.innerHTML = `<span>0%</span><span>100%</span>`;
+                
+                slider.addEventListener('input', updateBudgetDistribution);
+                
+                sliderContainer.appendChild(sliderLabel);
+                sliderContainer.appendChild(sliderValue);
+                sliderContainer.appendChild(slider);
+                sliderContainer.appendChild(sliderLabels);
+                
+                budgetSliders.appendChild(sliderContainer);
+            });
+        }
+        
+        // Update budget distribution based on slider changes
+        function updateBudgetDistribution() {
+            const sliders = document.querySelectorAll('#budgetSliders .slider');
+            const customScenario = campaignData.scenarios[campaignData.scenarios.length - 1];
+            
+            let total = 0;
+            
+            // Calculate total percentage
+            sliders.forEach(slider => {
+                total += parseFloat(slider.value);
+            });
+            
+            // Normalize values to ensure total is 100%
+            sliders.forEach(slider => {
+                const channel = slider.dataset.channel;
+                const normalizedPercentage = total > 0 ? (parseFloat(slider.value) / total) * 100 : 0;
+                const allocation = (normalizedPercentage / 100) * campaignData.totalBudget;
+                
+                customScenario.allocation[channel] = allocation;
+                
+                // Update slider value display
+                const sliderValue = slider.previousElementSibling;
+                sliderValue.textContent = `${formatCurrency(allocation)} (${normalizedPercentage.toFixed(1)}%)`;
+                
+                // Update slider value
+                slider.value = normalizedPercentage;
+            });
+            
+            // Recalculate scenario metrics
+            campaignScenarioCalculations(customScenario);
+        }
+        
+        // Apply the custom budget allocation
+        function applyBudgetAllocation() {
+            const customScenario = campaignData.scenarios[campaignData.scenarios.length - 1];
+            campaignData.activeScenario = customScenario;
+            
+            // Update UI
+            populateDashboardOverview();
+            populateChannelPerformance();
+            populateScenarios();
+            populateMetricsTable();
+        }
+        
+        // Populate metrics table
+        function populateMetricsTable() {
+            metricsTable.innerHTML = '';
+            
+            const activeScenario = campaignData.activeScenario;
+            
+            // Campaign level metrics
+            const metrics = [
+                { name: 'Total Budget', value: formatCurrency(campaignData.totalBudget), tooltip: 'Total budget for the campaign' },
+                { name: 'Daily Budget', value: formatCurrency(campaignData.totalBudget / campaignData.duration), tooltip: 'Budget per day = Total Budget / Campaign Duration' },
+                { name: 'Projected Clicks', value: formatNumber(activeScenario.totalClicks), tooltip: 'Estimated total clicks across all channels' },
+                { name: 'Projected Conversions', value: formatNumber(activeScenario.totalConversions), tooltip: 'Estimated total conversions across all channels' },
+                { name: 'Average CPA', value: formatCurrency(activeScenario.avgCPA), tooltip: 'Average Cost Per Acquisition across all channels' },
+                { name: 'Projected Revenue', value: formatCurrency(activeScenario.totalRevenue), tooltip: 'Estimated total revenue across all channels' },
+                { name: 'ROAS', value: formatRoas(activeScenario.totalRoas), tooltip: 'Return On Ad Spend = Total Revenue / Total Budget' },
+                { name: 'Campaign Duration', value: `${campaignData.duration} days`, tooltip: 'Total days from start to end date' }
+            ];
+            
+            metrics.forEach(metric => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="tooltip-container">
+                        <span class="has-tooltip">${metric.name}</span>
+                        <span class="tooltip-text">${metric.tooltip}</span>
+                    </td>
+                    <td>${metric.value}</td>
+                `;
+                metricsTable.appendChild(row);
+            });
+        }
+        
+        // Populate recommendations
+        function populateRecommendations() {
+            recommendationsList.innerHTML = '';
+            
+            // Generate recommendations based on data and goals
+            const recommendations = [];
+            
+            // Check goal performance
+            const activeScenario = campaignData.activeScenario;
+            
+            // Add recommendation based on objective
+            if (campaignData.objective && campaignData.objectiveTarget > 0) {
+                const objectiveName = objectiveConfigs[campaignData.objective].name;
+                const objectiveTarget = campaignData.objectiveTarget;
+                const projectedConversions = activeScenario.totalConversions;
+                
+                if (projectedConversions >= objectiveTarget) {
+                    recommendations.push(`Your budget of ${formatCurrency(campaignData.totalBudget)} is sufficient to achieve your target of ${formatNumber(objectiveTarget)} ${objectiveName}.`);
+                } else {
+                    const percentageMissing = ((objectiveTarget - projectedConversions) / objectiveTarget) * 100;
+                    recommendations.push(`Your budget of ${formatCurrency(campaignData.totalBudget)} may be insufficient to achieve your target of ${formatNumber(objectiveTarget)} ${objectiveName}. Currently projecting ${formatNumber(projectedConversions)} (${formatPercentage(percentageMissing)} short).`);
+                }
+            } else {
+                // Fallback to performance goal
+                switch (campaignData.performanceGoal.type) {
+                    case 'conversions': {
+                        const goalValue = campaignData.performanceGoal.value;
+                        const projected = activeScenario.totalConversions;
+                        
+                        if (projected < goalValue * 0.8) {
+                            recommendations.push(`Your current budget may not be sufficient to reach your goal of ${formatNumber(goalValue)} conversions. Consider increasing your budget or extending the campaign duration.`);
+                        } else if (projected >= goalValue * 0.8 && projected < goalValue) {
+                            recommendations.push(`You're projected to achieve ${formatNumber(projected)} conversions, which is close to your goal of ${formatNumber(goalValue)}. Consider optimizing your budget allocation for better results.`);
+                        } else {
+                            recommendations.push(`You're projected to exceed your goal of ${formatNumber(goalValue)} conversions with ${formatNumber(projected)} conversions. Your budget allocation looks effective.`);
+                        }
+                        break;
+                    }
+                    case 'cpa': {
+                        const goalValue = campaignData.performanceGoal.value;
+                        const projected = activeScenario.avgCPA;
+                        
+                        if (projected > goalValue * 1.2) {
+                            recommendations.push(`Your projected CPA of ${formatCurrency(projected)} is higher than your target of ${formatCurrency(goalValue)}. Consider reallocating budget to channels with lower CPA.`);
+                        } else if (projected <= goalValue * 1.2 && projected > goalValue) {
+                            recommendations.push(`Your projected CPA of ${formatCurrency(projected)} is close to your target of ${formatCurrency(goalValue)}. Minor optimizations may help you reach your goal.`);
+                        } else {
+                            recommendations.push(`Your projected CPA of ${formatCurrency(projected)} is better than your target of ${formatCurrency(goalValue)}. Your budget allocation looks effective.`);
+                        }
+                        break;
+                    }
+                    case 'roas': {
+                        const goalValue = campaignData.performanceGoal.value;
+                        const projected = activeScenario.totalRoas;
+                        
+                        if (projected < goalValue * 0.8) {
+                            recommendations.push(`Your projected ROAS of ${formatRoas(projected)} is lower than your target of ${formatRoas(goalValue)}. Consider reallocating budget to channels with higher ROAS.`);
+                        } else if (projected >= goalValue * 0.8 && projected < goalValue) {
+                            recommendations.push(`Your projected ROAS of ${formatRoas(projected)} is close to your target of ${formatRoas(goalValue)}. Minor optimizations may help you reach your goal.`);
+                        } else {
+                            recommendations.push(`Your projected ROAS of ${formatRoas(projected)} exceeds your target of ${formatRoas(goalValue)}. Your budget allocation looks effective.`);
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            // Check for channels with high performance
+            campaignData.channels.forEach(channel => {
+                const metrics = campaignData.historicalData[channel];
+                const allocation = activeScenario.allocation[channel];
+                const percentage = (allocation / campaignData.totalBudget) * 100;
+                
+                // Recommend based on goal
+                if (campaignData.objective) {
+                    // Focus on conversion rate for objective-based recommendations
+                    if (metrics.convRate > 0.03 && percentage < 30) { // 3% conversion rate is quite good
+                        recommendations.push(`${channelConfigs[channel].name} has a high conversion rate (${formatPercentage(metrics.convRate * 100)}). Consider increasing its budget allocation.`);
+                    }
+                } else {
+                    // Fallback to performance goal
+                    switch (campaignData.performanceGoal.type) {
+                        case 'conversions': {
+                            if (metrics.convRate > 0.03 && percentage < 30) { // 3% conversion rate is quite good
+                                recommendations.push(`${channelConfigs[channel].name} has a high conversion rate (${formatPercentage(metrics.convRate * 100)}). Consider increasing its budget allocation.`);
+                            }
+                            break;
+                        }
+                        case 'cpa': {
+                            const avgCPA = campaignData.channels.reduce((sum, ch) => sum + campaignData.historicalData[ch].cpa, 0) / campaignData.channels.length;
+                            
+                            if (metrics.cpa < avgCPA * 0.8 && percentage < 30) {
+                                recommendations.push(`${channelConfigs[channel].name} has a low CPA (${formatCurrency(metrics.cpa)}). Consider increasing its budget allocation.`);
+                            }
+                            break;
+                        }
+                        case 'roas': {
+                            if (metrics.roas > 4 && percentage < 30) { // 4x ROAS is quite good
+                                recommendations.push(`${channelConfigs[channel].name} has a high ROAS (${formatRoas(metrics.roas)}). Consider increasing its budget allocation.`);
+                            }
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            // Add general recommendations
+            if (campaignData.totalBudget / campaignData.duration < 50) {
+                recommendations.push(`Your daily budget of ${formatCurrency(campaignData.totalBudget / campaignData.duration)} is relatively low. Consider focusing on fewer channels for more impact.`);
+            }
+            
+            if (campaignData.channels.length > 2 && campaignData.totalBudget < 5000) {
+                recommendations.push(`With a budget of ${formatCurrency(campaignData.totalBudget)} spread across ${campaignData.channels.length} channels, consider focusing on the 1-2 best performing channels.`);
+            }
+            
+            // Add recommendations to the list
+            if (recommendations.length === 0) {
+                recommendations.push('Your campaign setup looks optimal based on the provided data. Monitor performance closely and adjust if needed.');
+            }
+            
+            recommendations.forEach(recommendation => {
+                const li = document.createElement('li');
+                li.textContent = recommendation;
+                recommendationsList.appendChild(li);
+            });
+        }
+        
+        // Show final scenario recap
+        function showFinalScenario() {
+            if (!campaignData.finalScenario && !finalScenarioSelect.checked) {
+                // If no scenario is selected, use active scenario
+                finalScenarioSelect.checked = true;
+                campaignData.finalScenario = campaignData.activeScenario;
+            }
+            
+            if (campaignData.finalScenario) {
+                populateFinalScenarioRecap();
+                
+                dashboardSection.classList.remove('dashboard-active');
+                finalScenarioRecap.style.display = 'block';
+            }
+        }
+        
+        // Populate final scenario recap
+        function populateFinalScenarioRecap() {
+            const scenario = campaignData.finalScenario;
+            
+            // Update campaign details
+            finalCampaignName.textContent = campaignData.name;
+            finalCampaignDuration.textContent = `${campaignData.duration} days`;
+            finalCampaignDates.textContent = `${new Date(campaignData.startDate).toLocaleDateString()} - ${new Date(campaignData.endDate).toLocaleDateString()}`;
+            
+            if (campaignData.objective && objectiveConfigs[campaignData.objective]) {
+                finalCampaignObjective.textContent = objectiveConfigs[campaignData.objective].name;
+                finalCampaignTarget.textContent = `${formatNumber(campaignData.objectiveTarget)} ${objectiveConfigs[campaignData.objective].name}`;
+            } else {
+                // Fallback to performance goal
+                switch (campaignData.performanceGoal.type) {
+                    case 'conversions':
+                        finalCampaignObjective.textContent = 'Conversions';
+                        finalCampaignTarget.textContent = `${formatNumber(campaignData.performanceGoal.value)} conversions`;
+                        break;
+                    case 'cpa':
+                        finalCampaignObjective.textContent = 'Cost Per Acquisition';
+                        finalCampaignTarget.textContent = `${formatCurrency(campaignData.performanceGoal.value)} CPA`;
+                        break;
+                    case 'roas':
+                        finalCampaignObjective.textContent = 'Return On Ad Spend';
+                        finalCampaignTarget.textContent = `${formatRoas(campaignData.performanceGoal.value)} ROAS`;
+                        break;
+                }
+            }
+            
+            finalCampaignBudget.textContent = formatCurrency(campaignData.totalBudget);
+            
+            // Update budget allocation bar
+            finalChannelBudgetBar.innerHTML = '';
+            finalChannelBudgetLegend.innerHTML = '';
+            
+            campaignData.channels.forEach(channel => {
+                const allocation = scenario.allocation[channel];
+                const percentage = (allocation / campaignData.totalBudget) * 100;
+                
+                // Create bar segment
+                const segment = document.createElement('div');
+                segment.classList.add('channel-budget-segment', channel);
+                segment.style.width = `${percentage}%`;
+                segment.textContent = `${percentage.toFixed(1)}%`;
+                finalChannelBudgetBar.appendChild(segment);
+                
+                // Create legend item
+                const legendItem = document.createElement('div');
+                legendItem.classList.add('legend-item');
+                legendItem.innerHTML = `
+                    <div class="legend-color ${channel}"></div>
+                    <div>${channelConfigs[channel].name}: ${formatCurrency(allocation)}</div>
+                `;
+                finalChannelBudgetLegend.appendChild(legendItem);
+            });
+            
+            // Update metrics
+            finalTotalBudget.textContent = formatCurrency(campaignData.totalBudget);
+            finalProjectedRevenue.textContent = formatCurrency(scenario.totalRevenue);
+            
+            // Set key metric based on objective or performance goal
+            if (campaignData.objective && objectiveConfigs[campaignData.objective]) {
+                finalKeyMetricTitle.textContent = `Projected ${objectiveConfigs[campaignData.objective].name}`;
+                finalKeyMetricValue.textContent = formatNumber(scenario.totalConversions);
+            } else {
+                // Fallback to performance goal
+                switch (campaignData.performanceGoal.type) {
+                    case 'conversions':
+                        finalKeyMetricTitle.textContent = 'Projected Conversions';
+                        finalKeyMetricValue.textContent = formatNumber(scenario.totalConversions);
+                        break;
+                    case 'cpa':
+                        finalKeyMetricTitle.textContent = 'Projected CPA';
+                        finalKeyMetricValue.textContent = formatCurrency(scenario.avgCPA);
+                        break;
+                    case 'roas':
+                        finalKeyMetricTitle.textContent = 'Projected ROAS';
+                        finalKeyMetricValue.textContent = formatRoas(scenario.totalRoas);
+                        break;
+                }
+            }
+            
+            // Populate performance table
+            finalPerformanceTable.innerHTML = '';
+            
+            // Add total row first
+            const totalRow = document.createElement('tr');
+            totalRow.style.fontWeight = 'bold';
+            totalRow.innerHTML = `
+                <td>Total</td>
+                <td>${formatCurrency(campaignData.totalBudget)}</td>
+                <td>${formatNumber(scenario.totalClicks)}</td>
+                <td>${formatNumber(scenario.totalConversions)}</td>
+                <td>${formatCurrency(scenario.totalRevenue)}</td>
+                <td>${formatRoas(scenario.totalRoas)}</td>
+            `;
+            finalPerformanceTable.appendChild(totalRow);
+            
+            // Add channel rows
+            campaignData.channels.forEach(channel => {
+                const allocation = scenario.allocation[channel];
+                const projections = scenario.channelProjections[channel];
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${channelConfigs[channel].name}</td>
+                    <td>${formatCurrency(allocation)}</td>
+                    <td>${formatNumber(projections.clicks)}</td>
+                    <td>${formatNumber(projections.conversions)}</td>
+                    <td>${formatCurrency(projections.revenue)}</td>
+                    <td>${formatRoas(campaignData.historicalData[channel].roas)}</td>
+                `;
+                finalPerformanceTable.appendChild(row);
+            });
+            
+            // Set date
+            finalScenarioDate.textContent = `Generated on ${new Date().toLocaleDateString()}`;
+        }
+        
+        // Back to dashboard
+        function backToDashboard() {
+            finalScenarioRecap.style.display = 'none';
+            dashboardSection.classList.add('dashboard-active');
+        }
+        
+        // Export final scenario as screenshot
+        function exportFinalScenario() {
+            html2canvas(finalScenarioRecap).then(canvas => {
+                // Create an image
+                const image = canvas.toDataURL("image/png");
+                
+                // Create a temporary link element
+                const link = document.createElement('a');
+                link.href = image;
+                link.download = `${campaignData.name}_Campaign_Plan.png`;
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+        
+        // Set default date values - CORRETTO
+        function setDefaultDates() {
+            const today = new Date();
+            const nextMonth = new Date(today);
+            nextMonth.setMonth(today.getMonth() + 1);
+            
+            // Formatta le date nel formato yyyy-mm-dd per l'input date
+            startDateInput.value = today.toISOString().split('T')[0];
+            endDateInput.value = nextMonth.toISOString().split('T')[0];
+            
+            // Aggiorna esplicitamente la durata della campagna
+            updateCampaignDuration();
+        }
+        
+        // Initialize the application
+        function init() {
+            setDefaultDates();
+            validateStep1();
+            
+            // Imposta un valore predefinito per il performance goal basato sull'obiettivo
+            if (campaignData.objective) {
+                switch (campaignData.objective) {
+                    case 'traffic':
+                    case 'profile_visits':
+                        campaignData.performanceGoal = {
+                            type: 'conversions',
+                            value: campaignData.objectiveTarget || 0
+                        };
+                        break;
+                    case 'leads':
+                        campaignData.performanceGoal = {
+                            type: 'cpa',
+                            value: campaignData.objectiveCost || 0
+                        };
+                        break;
+                    case 'sales':
+                        campaignData.performanceGoal = {
+                            type: 'roas',
+                            value: 4.0 // Default ROAS target
+                        };
+                        break;
+                }
+            }
+        }
+        
+        // Start the app
+        init();
+    </script>
+    </body>
+    </html>
